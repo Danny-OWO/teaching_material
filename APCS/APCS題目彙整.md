@@ -12,6 +12,8 @@
 
 3. [**r939. 猜拳**](https://zerojudge.tw/ShowProblem?problemid=r939)
 
+4. [**b964. 成績指標**](https://zerojudge.tw/ShowProblem?problemid=b964)
+
 </div>
 
 ---
@@ -30,6 +32,9 @@
 
 5. [**b965. 矩陣轉換**](https://zerojudge.tw/ShowProblem?problemid=b965)
 
+6. [**q182.2. 字串操作**](https://zerojudge.tw/ShowProblem?problemid=q182)
+
+7. [**m932.2. 蜜蜂觀察**](https://zerojudge.tw/ShowProblem?problemid=m932)
 </div>
 
 ---
