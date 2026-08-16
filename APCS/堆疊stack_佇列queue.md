@@ -200,3 +200,17 @@ while q:
 **沒錯差了一倍**
 
 ## 7. stack and queue 練習題目
+
+### stack
+* [**b923.stack 堆疊的模板題**](https://zerojudge.tw/ShowProblem?problemid=b923)
+
+* [**b838.104北二2.括號問題**](https://zerojudge.tw/ShowProblem?problemid=b838)
+
+* [**e924.pC. 括號配對**](https://zerojudge.tw/ShowProblem?problemid=e924)
+
+### queue
+
+* [**e447.queue 練習**](https://zerojudge.tw/ShowProblem?problemid=e447)
+
+* [**c700.壞掉的隊列(queue)**](https://zerojudge.tw/ShowProblem?problemid=c700)
+
