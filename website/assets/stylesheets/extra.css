@@ -30,7 +30,7 @@ body::before {
   z-index: -1;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(5, 8, 12, 0.82), rgba(5, 8, 12, 0.9)),
+    linear-gradient(180deg, rgba(5, 8, 12, 0.72), rgba(5, 8, 12, 0.82)),
     radial-gradient(circle at 70% 20%, rgba(41, 77, 91, 0.16), transparent 48%);
   content: "";
   pointer-events: none;
@@ -50,7 +50,7 @@ body::before {
 }
 
 .site-background-video.is-ready {
-  opacity: 0.48;
+  opacity: 0.58;
 }
 
 .md-container,
@@ -148,6 +148,15 @@ body::before {
 
 .md-typeset code {
   border: 1px solid rgba(132, 154, 174, 0.16);
+}
+
+.md-typeset .arithmatex {
+  color: #e7f1f5;
+}
+
+.md-typeset div.arithmatex {
+  overflow-x: auto;
+  padding: 0.5rem 0;
 }
 
 /* Responsive link cards generated from the existing ZeroJudge lists. */
