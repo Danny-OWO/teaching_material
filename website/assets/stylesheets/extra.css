@@ -24,6 +24,48 @@ body {
   letter-spacing: 0.01em;
 }
 
+/* Let both navigation columns sit closer to the viewport edges. */
+.md-grid {
+  max-width: 100%;
+}
+
+/* Keep long-form lessons comfortable even on a wide monitor. */
+.md-content__inner {
+  max-width: 52rem;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.md-typeset {
+  font-size: 0.76rem;
+  line-height: 1.82;
+}
+
+.md-typeset h1 {
+  color: #eaf4f8;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.md-typeset h2 {
+  color: #84d8e8;
+  font-weight: 600;
+}
+
+.md-typeset h3 {
+  color: #b9b4f4;
+  font-weight: 600;
+}
+
+.md-typeset strong {
+  color: #f3f7fa;
+}
+
+.md-typeset p,
+.md-typeset li {
+  color: #cbd5df;
+}
+
 .md-header,
 .md-tabs {
   background-color: #070a0e;
@@ -55,4 +97,10 @@ body {
 
 .md-typeset code {
   border: 1px solid rgba(132, 154, 174, 0.16);
+}
+
+@media screen and (max-width: 76.234375em) {
+  .md-content__inner {
+    max-width: none;
+  }
 }
