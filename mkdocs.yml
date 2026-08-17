@@ -35,6 +35,9 @@ extra_css:
   - https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&display=swap
   - assets/stylesheets/extra.css
 
+extra_javascript:
+  - assets/javascripts/background-video.js
+
 markdown_extensions:
   - admonition
   - attr_list
