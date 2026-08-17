@@ -7,14 +7,20 @@
   <meta name="description" content="My Teaching Materials Repository">
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   
-    <!-- Chill Theme: Themeable Dark Mode -->
+  <!-- Dark Theme -->
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple-dark.css">
-
   
   <style>
     :root {
       --base-font-size: 16px;
-      --theme-color: #5c7c8a; /* Chill blue-grey */
+      --theme-color: #5c7c8a;
+      --sidebar-nav-link-color: #e0e0e0; /* 側邊欄文字顏色 */
+      --sidebar-nav-link-active-color: #ffffff; /* 當前選中項目文字顏色 */
+      --sidebar-bg: #1E1E1E; /* 側邊欄背景色 */
+      --content-bg: #252525; /* 主內容區背景色 */
+    }
+    body {
+      background-color: #1E1E1E; /* 整體背景色 */
     }
     nav.app-nav {
       margin-right: 20px;
@@ -33,7 +39,6 @@
       alias: {
         '/.*/_sidebar.md': '/_sidebar.md'
       },
-      // Pagination and search are nice additions
       search: 'auto', 
       copyCode: {
         buttonText : 'Copy',
