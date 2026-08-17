@@ -1,34 +1,56 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <!-- 阻擋 Google 搜尋 -->
-    <meta name="robots" content="noindex, nofollow">
-    <title>我的教材庫</title>
+  <meta charset="UTF-8">
+  <title>Teaching Materials - 教材庫</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="My Teaching Materials Repository">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  
+  <!-- Chill Theme: Themeable -->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
+  
+  <style>
+    :root {
+      --base-font-size: 16px;
+      --theme-color: #5c7c8a; /* Chill blue-grey */
+    }
+    nav.app-nav {
+      margin-right: 20px;
+    }
+  </style>
 </head>
 <body>
-
-    <h1>教學教材索引</h1>
-
-    <h2>1. APCS 課程</h2>
-    <ul>
-        <!-- 連結到資源資料夾 -->
-        <li><a href="APCS/resources/">APCS 資源資料夾</a></li>
-    </ul>
-
-    <h2>2. TQC Python 練習</h2>
-    <ul>
-        <!-- 注意：資料夾名稱有空格，在 HTML 中直接打空格是可行的，或者寫 %20 替代空格 -->
-        <li><a href="TQC python/ch1/">第一章 (ch1) 範例</a></li>
-    </ul>
-
-    <h2>3. ZeroJudge 題庫解答</h2>
-    <ul>
-        <!-- 串接到各個題目的資料夾或特定檔案 -->
-        <li><a href="ZeroJudge/a694/">a694 題目網頁</a></li>
-        <li><a href="ZeroJudge/b965/">b965 題目網頁</a></li>
-        <li><a href="ZeroJudge/c130/">c130 題目網頁</a></li>
-    </ul>
-
+  <div id="app">Loading...</div>
+  <script>
+    window.$docsify = {
+      name: '教材庫',
+      repo: '',
+      loadSidebar: true,
+      subMaxLevel: 2,
+      auto2top: true,
+      alias: {
+        '/.*/_sidebar.md': '/_sidebar.md'
+      },
+      // Pagination and search are nice additions
+      search: 'auto', 
+      copyCode: {
+        buttonText : 'Copy',
+        errorText  : 'Error',
+        successText: 'Copied'
+      }
+    }
+  </script>
+  <!-- Docsify v4 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+  
+  <!-- Plugins -->
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+  
+  <!-- Language Highlighting -->
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-cpp.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
 </body>
 </html>
