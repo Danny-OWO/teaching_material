@@ -1,0 +1,58 @@
+site_name: CRZYBUTRFLY 教學教材庫
+site_description: APCS、TQC Python 與 ZeroJudge 程式設計教材
+site_url: https://danny-owo.github.io/teaching_material/
+repo_url: https://github.com/Danny-OWO/teaching_material
+repo_name: Danny-OWO/teaching_material
+
+docs_dir: .mkdocs-docs
+site_dir: site
+use_directory_urls: true
+
+theme:
+  name: material
+  language: zh-TW
+  palette:
+    scheme: slate
+    primary: blue grey
+    accent: cyan
+  features:
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - search.highlight
+    - search.share
+    - content.code.copy
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - 首頁: index.md
+  - APCS 課程:
+      - APCS 考試內容: APCS/APCS考試內容.md
+      - APCS 題目彙整: APCS/APCS題目彙整.md
+      - 一維差分: APCS/一維差分.md
+      - 二維前綴和: APCS/二維前綴和.md
+      - 二維差分: APCS/二維差分.md
+      - Stack 與 Queue: APCS/堆疊stack_佇列queue.md
+      - 差分與前綴和: APCS/差分與前綴和.md
+      - 遞迴 Recursion: APCS/遞迴recursion.md
