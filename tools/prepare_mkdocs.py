@@ -1,6 +1,7 @@
 """Prepare an isolated MkDocs source tree without editing teaching materials."""
 
 from pathlib import Path
+import re
 import shutil
 
 
@@ -17,11 +18,27 @@ def normalize_markdown_tables(path: Path) -> None:
         '<div style="font-size: 18px; line-height: 2;">',
         '<div markdown="1" class="problem-list">',
     )
+    text = text.replace('src="./resources\\', 'src="../resources/')
+    text = re.sub(
+        r"(?<!\$)\$\$[ \t]*(.+?)[ \t]*\$\$(?!\$)",
+        r"$\1$",
+        text,
+    )
     lines = text.splitlines(keepends=True)
     normalized: list[str] = []
+    inside_display_math = False
 
     for index, line in enumerate(lines):
         next_line = lines[index + 1] if index + 1 < len(lines) else ""
+        if line.strip() == "$$":
+            if not inside_display_math and normalized and normalized[-1].strip():
+                normalized.append("\n")
+            normalized.append(line)
+            inside_display_math = not inside_display_math
+            if not inside_display_math and next_line.strip():
+                normalized.append("\n")
+            continue
+
         is_table_header = line.lstrip().startswith("|") and next_line.lstrip().startswith("| :---")
         if is_table_header and normalized and normalized[-1].strip():
             normalized.append("\n")
