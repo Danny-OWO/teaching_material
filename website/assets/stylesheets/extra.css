@@ -66,6 +66,21 @@ body {
   color: #cbd5df;
 }
 
+.md-typeset a:not(.headerlink) {
+  text-decoration-line: underline;
+  text-decoration-color: rgba(115, 212, 231, 0.42);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.2em;
+  transition:
+    color 160ms ease,
+    text-decoration-color 160ms ease;
+}
+
+.md-typeset a:not(.headerlink):hover {
+  color: #a9effa;
+  text-decoration-color: currentColor;
+}
+
 .md-header,
 .md-tabs {
   background-color: #070a0e;
@@ -97,6 +112,62 @@ body {
 
 .md-typeset code {
   border: 1px solid rgba(132, 154, 174, 0.16);
+}
+
+/* Responsive link cards generated from the existing ZeroJudge lists. */
+.md-typeset .problem-list ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.7rem;
+  margin: 1rem 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.md-typeset .problem-list li {
+  margin: 0;
+}
+
+.md-typeset .problem-list a {
+  display: flex;
+  min-height: 3.25rem;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 0.9rem;
+  color: #d7e7ed;
+  background:
+    linear-gradient(135deg, rgba(103, 212, 232, 0.08), transparent 55%),
+    #0d131b;
+  border: 1px solid #253240;
+  border-radius: 0.55rem;
+  box-shadow: 0 0.25rem 0.8rem rgba(0, 0, 0, 0.16);
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+  transform 160ms ease;
+  text-decoration: none;
+}
+
+.md-typeset .problem-list a::after {
+  margin-left: auto;
+  color: #67d4e8;
+  content: "↗";
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.md-typeset .problem-list a:hover,
+.md-typeset .problem-list a:focus-visible {
+  color: #ffffff;
+  border-color: #4c9dab;
+  box-shadow: 0 0.45rem 1.2rem rgba(0, 0, 0, 0.28);
+  transform: translateY(-2px);
+}
+
+.md-typeset .problem-list a strong {
+  color: inherit;
+  font-weight: 600;
 }
 
 @media screen and (max-width: 76.234375em) {

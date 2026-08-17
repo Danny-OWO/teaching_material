@@ -11,8 +11,12 @@ PUBLISHED_SUFFIXES = {".md", ".txt", ".jpg", ".jpeg", ".png", ".gif", ".svg", ".
 
 
 def normalize_markdown_tables(path: Path) -> None:
-    """Make Docsify-tolerated tables valid for Python Markdown in the build copy."""
+    """Normalize Docsify-tolerated Markdown syntax in the isolated build copy."""
     text = path.read_text(encoding="utf-8")
+    text = text.replace(
+        '<div style="font-size: 18px; line-height: 2;">',
+        '<div markdown="1" class="problem-list">',
+    )
     lines = text.splitlines(keepends=True)
     normalized: list[str] = []
 
