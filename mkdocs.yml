@@ -11,6 +11,7 @@ use_directory_urls: true
 theme:
   name: material
   language: zh-TW
+  font: false
   palette:
     scheme: slate
     primary: blue grey
@@ -30,6 +31,10 @@ plugins:
       lang:
         - zh
         - en
+
+extra_css:
+  - https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&display=swap
+  - assets/stylesheets/extra.css
 
 markdown_extensions:
   - admonition
