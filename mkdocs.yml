@@ -67,3 +67,14 @@ nav:
       - Stack 與 Queue: APCS/堆疊stack_佇列queue.md
       - 差分與前綴和: APCS/差分與前綴和.md
       - 遞迴 Recursion: APCS/遞迴recursion.md
+  - ZeroJudge 程式:
+      - 程式索引: ZeroJudge/index.md
+      - a694: ZeroJudge/a694/index.md
+      - b965: ZeroJudge/b965/index.md
+      - c130: ZeroJudge/c130/index.md
+      - e340: ZeroJudge/e340/index.md
+      - r488: ZeroJudge/r488/index.md
+      - s181: ZeroJudge/s181/index.md
+  - TQC Python:
+      - 程式索引: TQC python/index.md
+      - Chapter 1: TQC python/ch1/index.md

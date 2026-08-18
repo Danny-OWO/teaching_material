@@ -7,6 +7,7 @@ import shutil
 
 ROOT = Path(__file__).resolve().parents[1]
 DESTINATION = ROOT / ".mkdocs-docs"
+MATERIALS = ROOT / "materials"
 SOURCE_DIRECTORIES = ("APCS", "TQC python", "ZeroJudge")
 PUBLISHED_SUFFIXES = {".md", ".txt", ".jpg", ".jpeg", ".png", ".gif", ".svg", ".cpp", ".py"}
 
@@ -80,6 +81,58 @@ def copy_published_files(source: Path, destination: Path) -> None:
             normalize_markdown_tables(target)
 
 
+def source_page_title(path: Path, base: Path) -> str:
+    relative = path.relative_to(base)
+    return relative.parent.as_posix() if relative.parent != Path(".") else path.stem
+
+
+def write_source_index(directory_name: str) -> None:
+    """Create navigable source-code pages in the disposable build tree."""
+    source_root = MATERIALS / directory_name
+    destination_root = DESTINATION / directory_name
+    source_files = sorted(
+        (path for path in source_root.rglob("*") if path.suffix.lower() in {".cpp", ".py"}),
+        key=lambda path: path.relative_to(source_root).as_posix().lower(),
+    )
+    groups: dict[Path, list[Path]] = {}
+    for source_file in source_files:
+        groups.setdefault(source_file.parent, []).append(source_file)
+
+    overview = [f"# {directory_name} 程式索引\n\n", "選擇題目或章節，即可閱讀及下載原始程式碼。\n\n", '<div class="source-index" markdown="1">\n\n']
+    for source_directory in groups:
+        relative_directory = source_directory.relative_to(source_root)
+        label = source_page_title(groups[source_directory][0], source_root)
+        target = "index.md" if relative_directory == Path(".") else f"{relative_directory.as_posix()}/index.md"
+        file_count = len(groups[source_directory])
+        overview.append(f"- [{label}]({target}) — {file_count} 個程式檔\n")
+    overview.append("\n</div>\n")
+    destination_root.mkdir(parents=True, exist_ok=True)
+    (destination_root / "index.md").write_text("".join(overview), encoding="utf-8")
+
+    for source_directory, files in groups.items():
+        relative_directory = source_directory.relative_to(source_root)
+        if relative_directory == Path("."):
+            # The overview already occupies the root index; root-level files are
+            # linked there without replacing it.
+            continue
+        page_directory = destination_root / relative_directory
+        page_directory.mkdir(parents=True, exist_ok=True)
+        title = source_page_title(files[0], source_root)
+        page = [f"# {title}\n\n", "[← 回到程式索引](../index.md)\n\n"]
+        for source_file in files:
+            copied_file = page_directory / source_file.name
+            language = "cpp" if source_file.suffix.lower() == ".cpp" else "python"
+            source_text = copied_file.read_text(encoding="utf-8", errors="replace").rstrip()
+            page.extend(
+                [
+                    f"## `{source_file.name}`\n\n",
+                    f"[開啟原始檔]({source_file.name}){{ .source-download }}\n\n",
+                    f"````{language}\n{source_text}\n````\n\n",
+                ]
+            )
+        (page_directory / "index.md").write_text("".join(page), encoding="utf-8")
+
+
 def main() -> None:
     if DESTINATION.exists():
         shutil.rmtree(DESTINATION)
@@ -92,8 +145,11 @@ def main() -> None:
     shutil.copytree(ROOT / "website", DESTINATION, dirs_exist_ok=True)
 
     for directory_name in SOURCE_DIRECTORIES:
-        source = ROOT / directory_name
+        source = MATERIALS / directory_name
         copy_published_files(source, DESTINATION / directory_name)
+
+    write_source_index("ZeroJudge")
+    write_source_index("TQC python")
 
 
 if __name__ == "__main__":

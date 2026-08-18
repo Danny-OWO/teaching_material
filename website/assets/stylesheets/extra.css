@@ -215,6 +215,42 @@ body::before {
   font-weight: 600;
 }
 
+/* Generated indexes for the source files kept beside each lesson. */
+.md-typeset .source-index ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+
+.md-typeset .source-index li {
+  margin: 0;
+}
+
+.md-typeset .source-index a,
+.md-typeset .source-download {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.65rem 0.85rem;
+  color: #dff8fc;
+  background: rgba(11, 18, 27, 0.88);
+  border: 1px solid #314454;
+  border-radius: 0.55rem;
+  text-decoration: none;
+}
+
+.md-typeset .source-index a {
+  width: 100%;
+}
+
+.md-typeset .source-index a:hover,
+.md-typeset .source-download:hover {
+  color: #ffffff;
+  border-color: #67d4e8;
+  box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.25);
+}
+
 @media screen and (max-width: 76.234375em) {
   .md-content__inner {
     max-width: none;
