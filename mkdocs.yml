@@ -33,7 +33,7 @@ plugins:
 
 extra_css:
   - https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&display=swap
-  - assets/stylesheets/extra.css?v=42922c3-nav
+  - assets/stylesheets/extra.css?v=profile-home-1
 
 extra_javascript:
   - assets/javascripts/background-video.js

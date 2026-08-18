@@ -263,6 +263,86 @@ body::before {
   box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.25);
 }
 
+/* Homepage profile and learning-area cards. */
+.md-typeset .profile-hero {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr);
+  gap: 1.6rem;
+  align-items: center;
+  margin: 1rem 0 2.2rem;
+  padding: 1.35rem;
+  background: linear-gradient(135deg, rgba(103, 212, 232, 0.1), transparent 55%), rgba(8, 13, 20, 0.82);
+  border: 1px solid rgba(132, 154, 174, 0.25);
+  border-radius: 1rem;
+  box-shadow: 0 0.8rem 2rem rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(0.65rem);
+}
+
+.md-typeset .profile-avatar {
+  width: 10rem;
+  height: 10rem;
+  margin: 0;
+  object-fit: cover;
+  border: 0.2rem solid rgba(240, 244, 88, 0.82);
+  border-radius: 50%;
+  box-shadow: 0 0 0 0.3rem rgba(240, 244, 88, 0.08);
+}
+
+.md-typeset .profile-intro h1 {
+  margin: 0 0 0.65rem;
+}
+
+.md-typeset .profile-intro p {
+  margin-bottom: 0.9rem;
+}
+
+.md-typeset .profile-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.md-typeset .profile-tags span {
+  padding: 0.3rem 0.65rem;
+  color: #e8f2f6;
+  background: rgba(103, 212, 232, 0.08);
+  border: 1px solid rgba(103, 212, 232, 0.25);
+  border-radius: 999px;
+  font-size: 0.68rem;
+}
+
+.md-typeset .home-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.md-typeset .home-links > a {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 1rem;
+  color: #cbd5df;
+  background: rgba(8, 13, 20, 0.78);
+  border: 1px solid #2b3a48;
+  border-radius: 0.7rem;
+  backdrop-filter: blur(0.5rem);
+  text-decoration: none;
+  transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.md-typeset .home-links > a:hover {
+  color: #e7f7fa;
+  border-color: #67d4e8;
+  transform: translateY(-2px);
+}
+
+.md-typeset .home-links strong {
+  color: #e7f7fa;
+  font-size: 0.88rem;
+}
+
 @media screen and (max-width: 76.234375em) {
   .md-content__inner {
     max-width: none;
@@ -276,5 +356,25 @@ body::before {
 
   body::before {
     background: #080b10;
+  }
+
+  .md-typeset .profile-hero {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .md-typeset .profile-avatar {
+    width: 8rem;
+    height: 8rem;
+    margin: 0 auto;
+  }
+
+  .md-typeset .profile-tags {
+    justify-content: center;
+  }
+
+  .md-typeset .home-links {
+    grid-template-columns: 1fr;
+    text-align: left;
   }
 }
