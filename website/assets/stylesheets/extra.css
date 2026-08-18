@@ -126,6 +126,18 @@ body::before {
   backdrop-filter: blur(0.5rem);
 }
 
+/* Blend Material's sticky navigation headers into the translucent sidebars. */
+.md-nav__title,
+.md-nav--primary > .md-nav__title {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Do not show an empty table-of-contents panel on short pages. */
+.md-sidebar--secondary:not(:has(.md-nav__list .md-nav__item)) {
+  visibility: hidden;
+}
+
 .md-typeset table:not([class]) {
   background-color: #0d1219;
   border: 1px solid #263241;
