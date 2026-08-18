@@ -117,13 +117,28 @@ body::before {
 
 .md-header,
 .md-tabs {
-  background-color: rgba(7, 10, 14, 0.9);
+  background: transparent;
+  box-shadow: none;
   backdrop-filter: blur(0.7rem);
 }
 
 .md-sidebar {
-  background-color: rgba(8, 11, 16, 0.72);
+  background: transparent;
   backdrop-filter: blur(0.5rem);
+}
+
+.md-header__title,
+.md-nav {
+  text-shadow: 0 1px 0.35rem rgba(0, 0, 0, 0.9);
+}
+
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  width: 1.65rem;
+  height: 1.65rem;
+  object-fit: cover;
+  border: 1px solid rgba(240, 244, 88, 0.72);
+  border-radius: 50%;
 }
 
 /* Blend Material's sticky navigation headers into the translucent sidebars. */
