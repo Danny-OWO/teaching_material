@@ -24,7 +24,6 @@ theme:
     primary: blue grey
     accent: cyan
   features:
-    - navigation.sections
     - navigation.indexes
     - navigation.top
     - toc.follow
@@ -40,7 +39,7 @@ plugins:
 
 extra_css:
   - https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&display=swap
-  - assets/stylesheets/extra.css?v=danny-brand-1
+  - assets/stylesheets/extra.css?v=danny-brand-2
 
 extra_javascript:
   - assets/javascripts/background-video.js
