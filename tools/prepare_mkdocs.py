@@ -24,18 +24,40 @@ def normalize_markdown_tables(path: Path) -> None:
         r"$\1$",
         text,
     )
+    text = re.sub(r"(?m)^[*+-]\s+(\d+[.)]\s+)", r"\1", text)
     lines = text.splitlines(keepends=True)
     normalized: list[str] = []
     inside_display_math = False
+    inside_code_fence = False
 
     for index, line in enumerate(lines):
+        stripped = line.strip()
         next_line = lines[index + 1] if index + 1 < len(lines) else ""
-        if line.strip() == "$$":
+        if stripped.startswith("```") or stripped.startswith("~~~"):
+            normalized.append(line)
+            inside_code_fence = not inside_code_fence
+            continue
+
+        if not inside_code_fence and stripped == "$$":
             if not inside_display_math and normalized and normalized[-1].strip():
                 normalized.append("\n")
             normalized.append(line)
             inside_display_math = not inside_display_math
             if not inside_display_math and next_line.strip():
+                normalized.append("\n")
+            continue
+
+        is_top_level_list = bool(re.match(r"^(?:[*+-]|\d+[.)])\s+", line))
+        next_is_top_level_list = bool(re.match(r"^(?:[*+-]|\d+[.)])\s+", next_line))
+        if not inside_code_fence and is_top_level_list:
+            previous_line = lines[index - 1] if index > 0 else ""
+            previous_is_top_level_list = bool(
+                re.match(r"^(?:[*+-]|\d+[.)])\s+", previous_line)
+            )
+            if normalized and normalized[-1].strip() and not previous_is_top_level_list:
+                normalized.append("\n")
+            normalized.append(line)
+            if next_line.strip() and not next_is_top_level_list:
                 normalized.append("\n")
             continue
 
