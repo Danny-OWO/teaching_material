@@ -323,6 +323,13 @@ body::before {
   font-size: 0.62rem;
 }
 
+.md-typeset .lesson-filename {
+  color: #91a3ad;
+  font-family: var(--md-code-font);
+  font-size: 0.62rem;
+  overflow-wrap: anywhere;
+}
+
 /* Homepage profile and learning-area cards. */
 .md-typeset .profile-hero {
   display: grid;

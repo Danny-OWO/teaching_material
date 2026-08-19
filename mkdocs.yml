@@ -11,6 +11,7 @@ use_directory_urls: true
 # Generated problem pages are linked from their source indexes. This keeps a
 # newly pushed solution deployable even before it is added to the sidebar.
 not_in_nav: |
+  APCS/*.md
   ZeroJudge/*/index.md
   TQC python/*/index.md
 
@@ -39,7 +40,7 @@ plugins:
 
 extra_css:
   - https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&display=swap
-  - assets/stylesheets/extra.css?v=source-index-1
+  - assets/stylesheets/extra.css?v=lesson-index-1
 
 extra_javascript:
   - assets/javascripts/background-video.js
@@ -65,16 +66,6 @@ markdown_extensions:
 
 nav:
   - 首頁: index.md
-  - APCS 課程:
-      - 學習路線（Python）: APCS/learning route - Python.md
-      - 學習路線（C++）: APCS/learning route - C++.md
-      - APCS 考試內容: APCS/APCS考試內容.md
-      - APCS 題目彙整: APCS/APCS題目彙整.md
-      - 一維差分: APCS/一維差分.md
-      - 二維前綴和: APCS/二維前綴和.md
-      - 二維差分: APCS/二維差分.md
-      - Stack 與 Queue: APCS/堆疊stack_佇列queue.md
-      - 差分與前綴和: APCS/差分與前綴和.md
-      - 遞迴 Recursion: APCS/遞迴recursion.md
+  - APCS 課程: APCS/index.md
   - ZeroJudge 題解: ZeroJudge/index.md
   - TQC Python: TQC python/index.md

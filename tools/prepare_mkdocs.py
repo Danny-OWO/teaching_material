@@ -4,6 +4,7 @@ from pathlib import Path
 import html
 import re
 import shutil
+from urllib.parse import quote
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,6 +22,7 @@ def normalize_markdown_tables(path: Path) -> None:
         '<div markdown="1" class="problem-list">',
     )
     text = text.replace('src="./resources\\', 'src="../resources/')
+    text = text.replace('src="./resources/', 'src="../resources/')
     text = re.sub(
         r"(?<!\$)\$\$[ \t]*(.+?)[ \t]*\$\$(?!\$)",
         r"$\1$",
@@ -154,6 +156,46 @@ def write_source_index(directory_name: str) -> None:
         (page_directory / "index.md").write_text("".join(page), encoding="utf-8")
 
 
+def write_markdown_index(directory_name: str) -> None:
+    """Create a searchable lesson index without editing source Markdown."""
+    source_root = MATERIALS / directory_name
+    destination_root = DESTINATION / directory_name
+    markdown_files = sorted(
+        source_root.glob("*.md"),
+        key=lambda path: (not path.name.lower().startswith("learning route"), path.name.lower()),
+    )
+
+    overview = [
+        f"# {directory_name} 教材索引\n\n",
+        "所有教材都由建置程式自動整理；新增 Markdown 後，下次部署便會出現在這裡。\n\n",
+        '<label class="source-search">\n',
+        '  <span>搜尋教材</span>\n',
+        '  <input type="search" placeholder="例如：二分搜尋" autocomplete="off">\n',
+        '</label>\n\n',
+        '<p class="source-count" aria-live="polite"></p>\n\n',
+        '<div class="source-index lesson-index">\n',
+    ]
+
+    for markdown_file in markdown_files:
+        text = markdown_file.read_text(encoding="utf-8", errors="replace")
+        heading = re.search(r"(?m)^#\s+(.+?)\s*$", text)
+        title = heading.group(1) if heading else markdown_file.stem
+        target = f"{quote(markdown_file.stem)}/"
+        search_text = html.escape(f"{title} {markdown_file.stem}".lower(), quote=True)
+        overview.extend(
+            [
+                f'  <a class="source-card" href="{target}" data-source-search="{search_text}">\n',
+                f'    <strong>{html.escape(title)}</strong>\n',
+                f'    <span class="lesson-filename">{html.escape(markdown_file.name)}</span>\n',
+                "  </a>\n",
+            ]
+        )
+
+    overview.extend(['</div>\n\n', '<p class="source-empty" hidden>找不到符合的教材。</p>\n'])
+    destination_root.mkdir(parents=True, exist_ok=True)
+    (destination_root / "index.md").write_text("".join(overview), encoding="utf-8")
+
+
 def main() -> None:
     if DESTINATION.exists():
         shutil.rmtree(DESTINATION)
@@ -171,6 +213,7 @@ def main() -> None:
 
     write_source_index("ZeroJudge")
     write_source_index("TQC python")
+    write_markdown_index("APCS")
 
 
 if __name__ == "__main__":
