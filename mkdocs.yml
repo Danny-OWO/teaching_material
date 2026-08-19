@@ -66,7 +66,8 @@ markdown_extensions:
 nav:
   - 首頁: index.md
   - APCS 課程:
-      - APCS / 競程學習路線: APCS/learning route.md
+      - 學習路線（Python）: APCS/learning route - Python.md
+      - 學習路線（C++）: APCS/learning route - C++.md
       - APCS 考試內容: APCS/APCS考試內容.md
       - APCS 題目彙整: APCS/APCS題目彙整.md
       - 一維差分: APCS/一維差分.md
