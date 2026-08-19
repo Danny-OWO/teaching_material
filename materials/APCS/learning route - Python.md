@@ -1,4 +1,4 @@
-# APCS / Competitive Programming 課程路線（Python）
+# APCS 課程路線（Python）
 
 本文件作為 Python 版本 APCS 與競賽程式設計課程的備課順序依據。單元依先備知識排列；前半段對應 APCS 各級能力，後半段銜接進階競程。
 
