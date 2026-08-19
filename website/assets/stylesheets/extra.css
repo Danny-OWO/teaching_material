@@ -242,23 +242,49 @@ body::before {
   font-weight: 600;
 }
 
-/* Generated indexes for the source files kept beside each lesson. */
-.md-typeset .source-index ul {
+/* Searchable indexes generated from source-code folders. */
+.md-typeset .source-search {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 24rem;
+  margin: 1rem 0 0.5rem;
+}
+
+.md-typeset .source-search span {
+  color: #dbe8ed;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.md-typeset .source-search input {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  color: #f1f7fa;
+  background: rgba(9, 16, 24, 0.82);
+  border: 1px solid #314454;
+  border-radius: 0.55rem;
+  outline: none;
+}
+
+.md-typeset .source-search input:focus {
+  border-color: #67d4e8;
+  box-shadow: 0 0 0 0.15rem rgba(103, 212, 232, 0.12);
+}
+
+.md-typeset .source-count,
+.md-typeset .source-empty {
+  color: #9eadb8;
+  font-size: 0.68rem;
+}
+
+.md-typeset .source-index {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
   gap: 0.75rem;
-  padding: 0;
-  list-style: none;
 }
 
-.md-typeset .source-index li {
-  margin: 0;
-}
-
-.md-typeset .source-index a,
+.md-typeset .source-card,
 .md-typeset .source-download {
-  display: inline-flex;
-  align-items: center;
   padding: 0.65rem 0.85rem;
   color: #dff8fc;
   background: rgba(11, 18, 27, 0.88);
@@ -267,15 +293,34 @@ body::before {
   text-decoration: none;
 }
 
-.md-typeset .source-index a {
-  width: 100%;
+.md-typeset .source-card {
+  display: flex;
+  min-height: 4.4rem;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.65rem;
 }
 
-.md-typeset .source-index a:hover,
+.md-typeset .source-card:hover,
 .md-typeset .source-download:hover {
   color: #ffffff;
   border-color: #67d4e8;
   box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.25);
+}
+
+.md-typeset .source-languages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.md-typeset .source-languages span {
+  padding: 0.15rem 0.45rem;
+  color: #bcd5dd;
+  background: rgba(103, 212, 232, 0.08);
+  border: 1px solid rgba(103, 212, 232, 0.2);
+  border-radius: 999px;
+  font-size: 0.62rem;
 }
 
 /* Homepage profile and learning-area cards. */

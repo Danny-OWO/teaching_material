@@ -1,6 +1,7 @@
 """Prepare an isolated MkDocs source tree without editing teaching materials."""
 
 from pathlib import Path
+import html
 import re
 import shutil
 
@@ -98,14 +99,34 @@ def write_source_index(directory_name: str) -> None:
     for source_file in source_files:
         groups.setdefault(source_file.parent, []).append(source_file)
 
-    overview = [f"# {directory_name} 程式索引\n\n", "選擇題目或章節，即可閱讀及下載原始程式碼。\n\n", '<div class="source-index" markdown="1">\n\n']
+    overview = [
+        f"# {directory_name} 程式索引\n\n",
+        "選擇題目或章節，即可閱讀及下載原始程式碼。\n\n",
+        '<label class="source-search">\n',
+        '  <span>搜尋題號</span>\n',
+        '  <input type="search" placeholder="例如：b923" autocomplete="off">\n',
+        '</label>\n\n',
+        '<p class="source-count" aria-live="polite"></p>\n\n',
+        '<div class="source-index">\n',
+    ]
     for source_directory in groups:
         relative_directory = source_directory.relative_to(source_root)
         label = source_page_title(groups[source_directory][0], source_root)
-        target = "index.md" if relative_directory == Path(".") else f"{relative_directory.as_posix()}/index.md"
-        file_count = len(groups[source_directory])
-        overview.append(f"- [{label}]({target}) — {file_count} 個程式檔\n")
-    overview.append("\n</div>\n")
+        target = "./" if relative_directory == Path(".") else f"{relative_directory.as_posix()}/"
+        languages = sorted(
+            {"C++" if path.suffix.lower() == ".cpp" else "Python" for path in groups[source_directory]}
+        )
+        language_badges = "".join(f"<span>{html.escape(language)}</span>" for language in languages)
+        search_text = html.escape(f"{label} {' '.join(languages)}".lower(), quote=True)
+        overview.extend(
+            [
+                f'  <a class="source-card" href="{html.escape(target, quote=True)}" data-source-search="{search_text}">\n',
+                f'    <strong>{html.escape(label)}</strong>\n',
+                f'    <span class="source-languages">{language_badges}</span>\n',
+                "  </a>\n",
+            ]
+        )
+    overview.extend(['</div>\n\n', '<p class="source-empty" hidden>找不到符合的題目。</p>\n'])
     destination_root.mkdir(parents=True, exist_ok=True)
     (destination_root / "index.md").write_text("".join(overview), encoding="utf-8")
 

@@ -1,3 +1,7 @@
 .mkdocs-docs/
 site/
 
+# Local compiler and editor output. Keep these on the computer, not in Git.
+*.exe
+**/.cph/
+materials/ZeroJudge/s181/s181
