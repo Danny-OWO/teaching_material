@@ -25,7 +25,6 @@ theme:
     primary: blue grey
     accent: cyan
   features:
-    - navigation.indexes
     - navigation.top
     - toc.follow
     - search.highlight

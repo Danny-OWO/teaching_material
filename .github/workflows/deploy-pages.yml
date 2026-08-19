@@ -38,7 +38,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Build website
-        run: mkdocs build --strict
+        run: mkdocs build --strict --config-file .mkdocs.generated.yml
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3

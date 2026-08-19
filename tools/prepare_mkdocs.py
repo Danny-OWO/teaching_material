@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import html
+import json
 import re
 import shutil
 from urllib.parse import quote
@@ -9,6 +10,7 @@ from urllib.parse import quote
 
 ROOT = Path(__file__).resolve().parents[1]
 DESTINATION = ROOT / ".mkdocs-docs"
+GENERATED_CONFIG = ROOT / ".mkdocs.generated.yml"
 MATERIALS = ROOT / "materials"
 SOURCE_DIRECTORIES = ("APCS", "TQC python", "ZeroJudge")
 PUBLISHED_SUFFIXES = {".md", ".txt", ".jpg", ".jpeg", ".png", ".gif", ".svg", ".cpp", ".py"}
@@ -87,6 +89,12 @@ def copy_published_files(source: Path, destination: Path) -> None:
 def source_page_title(path: Path, base: Path) -> str:
     relative = path.relative_to(base)
     return relative.parent.as_posix() if relative.parent != Path(".") else path.stem
+
+
+def markdown_title(path: Path) -> str:
+    text = path.read_text(encoding="utf-8", errors="replace")
+    heading = re.search(r"(?m)^#\s+(.+?)\s*$", text)
+    return heading.group(1) if heading else path.stem
 
 
 def write_source_index(directory_name: str) -> None:
@@ -177,9 +185,7 @@ def write_markdown_index(directory_name: str) -> None:
     ]
 
     for markdown_file in markdown_files:
-        text = markdown_file.read_text(encoding="utf-8", errors="replace")
-        heading = re.search(r"(?m)^#\s+(.+?)\s*$", text)
-        title = heading.group(1) if heading else markdown_file.stem
+        title = markdown_title(markdown_file)
         target = f"{quote(markdown_file.stem)}/"
         search_text = html.escape(f"{title} {markdown_file.stem}".lower(), quote=True)
         overview.extend(
@@ -194,6 +200,36 @@ def write_markdown_index(directory_name: str) -> None:
     overview.extend(['</div>\n\n', '<p class="source-empty" hidden>找不到符合的教材。</p>\n'])
     destination_root.mkdir(parents=True, exist_ok=True)
     (destination_root / "index.md").write_text("".join(overview), encoding="utf-8")
+
+
+def write_generated_config() -> None:
+    """Generate a collapsible APCS sidebar from the current Markdown files."""
+    base_config = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
+    base_config = re.sub(r"(?ms)^nav:\s*\n.*\Z", "", base_config).rstrip()
+    markdown_files = sorted(
+        (MATERIALS / "APCS").glob("*.md"),
+        key=lambda path: (not path.name.lower().startswith("learning route"), path.name.lower()),
+    )
+
+    nav = [
+        "",
+        "nav:",
+        '  - "首頁": "index.md"',
+        '  - "APCS 課程":',
+        '      - "教材索引": "APCS/index.md"',
+    ]
+    for markdown_file in markdown_files:
+        title = json.dumps(markdown_title(markdown_file), ensure_ascii=False)
+        target = json.dumps(f"APCS/{markdown_file.name}", ensure_ascii=False)
+        nav.append(f"      - {title}: {target}")
+    nav.extend(
+        [
+            '  - "ZeroJudge 題解": "ZeroJudge/index.md"',
+            '  - "TQC Python": "TQC python/index.md"',
+            "",
+        ]
+    )
+    GENERATED_CONFIG.write_text(base_config + "\n" + "\n".join(nav), encoding="utf-8")
 
 
 def main() -> None:
@@ -214,6 +250,7 @@ def main() -> None:
     write_source_index("ZeroJudge")
     write_source_index("TQC python")
     write_markdown_index("APCS")
+    write_generated_config()
 
 
 if __name__ == "__main__":

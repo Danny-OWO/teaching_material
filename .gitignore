@@ -1,4 +1,5 @@
 .mkdocs-docs/
+.mkdocs.generated.yml
 site/
 
 # Local compiler and editor output. Keep these on the computer, not in Git.
