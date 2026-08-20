@@ -11,7 +11,7 @@
 
 ## 1. 搜尋?
 
-厚厚的一打書，你打算...
+厚厚的一本書，你打算...
 從第一頁翻吧!
 
 ```text
@@ -194,4 +194,177 @@ while left <= right:
         left = middle + 1
 else:
     print("Either too big or too small")
+```
+
+## 7. 我用 C++ && 我不想刻
+
+很好，這種東西很明顯有人刻過，沒理由要我們每次都自己寫。  
+這時，我們就能利用到 C++ 的 Binary Search 工具。
+
+> **注意：不管使用哪一種工具，資料都必須先排序好！**
+
+C++ 的 `<algorithm>` 中，有這個：
+
+```cpp
+binary_search()
+```
+
+它的特點是：可以協助我們確認
+
+> **這個元素到底在不在裡面？**
+
+例如：
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int main()
+{
+    vector<int> lst = {1, 3, 5, 7, 9, 11};
+
+    if (binary_search(lst.begin(), lst.end(), 7))
+    {
+        cout << "FIND!" << endl;
+    }
+    else
+    {
+        cout << "NOT FOUND!" << endl;
+    }
+}
+```
+
+`binary_search()` 會回傳一個 `bool`：
+
+```text
+找到     → true
+找不到   → false
+```
+
+所以我們可以直接把它放進 `if` 裡面。
+
+基本格式：
+
+```cpp
+binary_search(開始位置, 結束位置, 要找的東西);
+```
+
+對 `vector` 來說通常就是：
+
+```cpp
+binary_search(lst.begin(), lst.end(), target);
+```
+
+## 8. 我用 python and 我不想刻
+
+Python 的工具不像 C++ `binary_search()` 那麼直觀。
+
+Python 提供的是：
+
+```python
+bisect
+```
+
+使用之前需要：
+
+```python
+import bisect
+```
+
+其中最常用的是：
+
+```python
+bisect.bisect_left()
+```
+
+例如：
+
+```python
+import bisect
+
+lst = [1, 3, 5, 7, 9, 11]
+
+pos = bisect.bisect_left(lst, 7)
+
+print(pos)
+```
+
+輸出：
+
+```text
+3
+```
+
+因為：
+
+```text
+ index
+   ↓
+0  1  2  3  4   5
+1  3  5  7  9  11
+         ↑
+```
+
+`7` 位於 index `3`。
+
+---
+
+`bisect_left()` 並不是在直接找該數字，而是
+
+> **「如果要把這個數字插進去，最左邊可以插在哪裡？」**
+
+例如：
+
+```python
+import bisect
+
+lst = [1, 3, 5, 7, 9, 11]
+
+pos = bisect.bisect_left(lst, 6)
+
+print(pos)
+```
+
+一樣會得到一個位置：
+
+```text
+3
+```
+
+`6` 雖然不在裡面，但是如果我們要插入 `6`：
+
+```text
+[1, 3, 5, 6, 7, 9, 11]
+          ↑
+```
+
+它就應該被放在 index = `3` 的位置。
+
+因此如果我們真的想判斷 `target` 存不存在，可以寫：
+
+```python
+import bisect
+
+lst = [1, 3, 5, 7, 9, 11]
+target = 7
+
+pos = bisect.bisect_left(lst, target)
+
+if pos < len(lst) and lst[pos] == target:
+    print("FIND!")
+else:
+    print("NOT FOUND!")
+```
+
+---
+
+痾對，你可能會想要問：
+
+**Python 為什麼不直接去找數字是否存在？**
+
+而這就要講到接下來兩個非常重要的東西：
+
+```text
+lower_bound
+upper_bound
 ```
