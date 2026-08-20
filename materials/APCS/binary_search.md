@@ -9,7 +9,7 @@
 
 你想打電話給 Sam 叫他趕緊打消和你的娃娃組一輩子樂團的幻想，所以你埋頭苦找，想要在電話簿理翻到 Sam 的電話。
 
-## 1.搜尋?
+## 1. 搜尋?
 
 厚厚的一打書，你打算...
 從第一頁翻吧!
@@ -28,7 +28,7 @@
 你可能會問我這些都是什麼名字，**你別管**。
 總而言之，Sam不知道在第幾頁，你快哭了，完全找不到，亂翻也怕剛好錯過，看來要出事了。
 
-## 2.二分搜尋
+## 2. 二分搜尋
 
 好，這時候老天派了個天使下來，把你的電話簿斯成一半。然後給了你有 Sam 那一半的電話簿。
 欸開心爆了，但你還是不想一個一個找。
@@ -57,4 +57,141 @@
 第 12 次：看第 80785 筆 → Sam 在後面
 第 13 次：看第 80797 筆 → Sam 在後面
 第 14 次：看第 80803 筆 → 找到了！
+```
+
+這樣的搜尋正是：**二分搜尋法**
+
+## 3. 二分搜尋的條件
+
+天使可以很正確的把電話簿不斷地撕下沒有 Sam 的那一頁，正是因為：**那一本電話簿是排序過的**。
+二分搜尋法最重要的便是只能用在排序過的資料情況下，否則你無法很肯定的撕下另外一半。
+
+## 4. 二分搜尋法演示
+
+在實作二分搜尋法時，有以下三個重要位置。
+
+* left = 目前範圍的最左側
+* right = 目前範圍的最右側
+* middle = 目前範圍的中間
+
+比如說：
+
+```text
+lst = [0, 1, 2, 3, 4, 5, ... , 99, 100]
+```
+
+我們想要找到 `68` 的話：
+
+```text
+left = 0 | right = 100 | middle = 50
+```
+
+middle 算法：**$(0+100)/2 = 50$**
+
+由於 `lst[50] < 68`，代表 `68` 只可能出現在 middle 的右邊，因此我們需要往右邊繼續找。
+
+```text
+left = 51 | right = 100 | middle = 75
+```
+
+middle 算法：**$(51+100)/2 = 75$**
+
+由於 `lst[75] > 68`，代表 `68` 只可能出現在 middle 的左邊，因此我們需要往左邊繼續找。
+
+```text
+left = 51 | right = 74 | middle = 62
+```
+
+middle 算法：**$(51+74)/2 = 62.5$**
+
+因為 index 必須是整數，所以無條件捨去得到 `62`。
+
+由於 `lst[62] < 68`，我們需要往右邊繼續找。
+
+```text
+left = 63 | right = 74 | middle = 68
+```
+
+middle 算法：**$(63+74)/2 = 68.5$**
+
+無條件捨去得到 `68`。
+
+這時：
+
+```text
+lst[68] == 68
+```
+
+成功找到 `68`！
+
+---
+
+所以我們可以發現，每次判斷完 `middle` 後：
+
+- 如果 `lst[middle] == target`：找到答案
+- 如果 `lst[middle] < target`：往右邊找，`left = middle + 1`
+- 如果 `lst[middle] > target`：往左邊找，`right = middle - 1`
+
+也就是說，每搜尋一次，我們都可以直接排除掉**大約一半的資料**。
+
+## 5. 手刻二分搜 (C++)
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+int main()
+{
+    ll target;
+    cin >> target;
+
+    vector<ll> lst = {1, 2, 3, 4, 5, 6, 7, 8}; // 排序好的資料結構
+
+    ll left = 0;
+    ll right = lst.size() - 1;
+
+    while (left <= right)
+    {
+        ll middle = (left + right) / 2;
+
+        if (lst[middle] == target)
+        {
+            cout << "FIND!" << endl;
+            return 0;
+        }
+        else if (lst[middle] > target)
+        {
+            right = middle - 1;
+        }
+        else
+        {
+            left = middle + 1;
+        }
+    }
+
+    cout << "Either too big or too small" << endl;
+}
+```
+
+## 6. 手刻二分搜 (python)
+```python
+target = int(input())
+
+lst = [1, 2, 3, 4, 5, 6, 7, 8]  # 排序好的資料結構
+
+left = 0
+right = len(lst) - 1
+
+while left <= right:
+    middle = (left + right) // 2
+
+    if lst[middle] == target:
+        print("FIND!")
+        break
+    elif lst[middle] > target:
+        right = middle - 1
+    else:
+        left = middle + 1
+else:
+    print("Either too big or too small")
 ```
