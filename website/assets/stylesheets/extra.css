@@ -243,6 +243,41 @@ body::before {
 }
 
 /* Searchable indexes generated from source-code folders. */
+.md-typeset .solution-images {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 1rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.md-typeset .solution-image {
+  margin: 0;
+  overflow: hidden;
+  background: rgba(9, 16, 24, 0.72);
+  border: 1px solid #314454;
+  border-radius: 0.7rem;
+}
+
+.md-typeset .solution-image a {
+  display: block;
+}
+
+.md-typeset .solution-image img {
+  display: block;
+  width: 100%;
+  max-height: 34rem;
+  margin: 0;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.md-typeset .solution-image figcaption {
+  padding: 0.55rem 0.75rem;
+  color: #bcd5dd;
+  border-top: 1px solid #314454;
+  font-size: 0.68rem;
+}
+
 .md-typeset .source-search {
   display: grid;
   gap: 0.35rem;

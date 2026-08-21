@@ -14,6 +14,7 @@ GENERATED_CONFIG = ROOT / ".mkdocs.generated.yml"
 MATERIALS = ROOT / "materials"
 SOURCE_DIRECTORIES = ("APCS", "TQC python", "ZeroJudge")
 PUBLISHED_SUFFIXES = {".md", ".txt", ".jpg", ".jpeg", ".png", ".gif", ".svg", ".cpp", ".py"}
+IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".gif", ".svg"}
 
 
 def normalize_markdown_tables(path: Path) -> None:
@@ -150,6 +151,30 @@ def write_source_index(directory_name: str) -> None:
         page_directory.mkdir(parents=True, exist_ok=True)
         title = source_page_title(files[0], source_root)
         page = [f"# {title}\n\n", "[← 回到程式索引](../index.md)\n\n"]
+        image_files = sorted(
+            (
+                path
+                for path in source_directory.rglob("*")
+                if path.is_file() and path.suffix.lower() in IMAGE_SUFFIXES
+            ),
+            key=lambda path: path.relative_to(source_directory).as_posix().lower(),
+        )
+        if image_files:
+            page.extend(["## 題目圖片與解題筆記\n\n", '<div class="solution-images">\n'])
+            for image_file in image_files:
+                relative_image = image_file.relative_to(source_directory).as_posix()
+                image_url = quote(relative_image)
+                image_label = image_file.stem.replace("_", " ").replace("-", " ")
+                escaped_label = html.escape(image_label)
+                page.extend(
+                    [
+                        '  <figure class="solution-image">\n',
+                        f'    <a href="{image_url}"><img src="{image_url}" alt="{escaped_label}" loading="lazy"></a>\n',
+                        f"    <figcaption>{escaped_label}</figcaption>\n",
+                        "  </figure>\n",
+                    ]
+                )
+            page.extend(["</div>\n\n"])
         for source_file in files:
             copied_file = page_directory / source_file.name
             language = "cpp" if source_file.suffix.lower() == ".cpp" else "python"
