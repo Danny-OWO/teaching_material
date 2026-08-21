@@ -361,10 +361,12 @@ else:
 痾對，你可能會想要問：
 
 **Python 為什麼不直接去找數字是否存在？**
+~~因為python很爛~~
 
-而這就要講到接下來兩個非常重要的東西：
+| 想找的東西 | C++ | Python |
+|---|---|---|
+| 有沒有 `x` | `binary_search()` | 用 `bisect_left()` 判斷 |
 
-```text
-lower_bound
-upper_bound
-```
+所以這篇，我們介紹了什麼是 binary search，並且除了手刻外，我們還介紹了可以用的binary search 工具。
+
+但這還沒結束，
