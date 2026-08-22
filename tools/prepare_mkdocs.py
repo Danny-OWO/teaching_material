@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DESTINATION = ROOT / ".mkdocs-docs"
 GENERATED_CONFIG = ROOT / ".mkdocs.generated.yml"
 MATERIALS = ROOT / "materials"
-SOURCE_DIRECTORIES = ("APCS", "TQC python", "ZeroJudge")
+SOURCE_DIRECTORIES = ("APCS", "codecat", "TQC python", "ZeroJudge")
 PUBLISHED_SUFFIXES = {".md", ".txt", ".jpg", ".jpeg", ".png", ".gif", ".svg", ".cpp", ".py"}
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".gif", ".svg"}
 
@@ -249,6 +249,7 @@ def write_generated_config() -> None:
         nav.append(f"      - {title}: {target}")
     nav.extend(
         [
+            '  - "CodeCat": "codecat/index.md"',
             '  - "ZeroJudge 題解": "ZeroJudge/index.md"',
             '  - "TQC Python": "TQC python/index.md"',
             "",
@@ -275,6 +276,7 @@ def main() -> None:
     write_source_index("ZeroJudge")
     write_source_index("TQC python")
     write_markdown_index("APCS")
+    write_markdown_index("codecat")
     write_generated_config()
 
 

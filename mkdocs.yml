@@ -12,6 +12,7 @@ use_directory_urls: true
 # newly pushed solution deployable even before it is added to the sidebar.
 not_in_nav: |
   APCS/*.md
+  codecat/*.md
   ZeroJudge/*/index.md
   TQC python/*/index.md
 
@@ -55,6 +56,7 @@ markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
+  - pymdownx.magiclink
   - pymdownx.arithmatex:
       generic: true
   - pymdownx.superfences:
@@ -66,5 +68,6 @@ markdown_extensions:
 nav:
   - 首頁: index.md
   - APCS 課程: APCS/index.md
+  - CodeCat: codecat/index.md
   - ZeroJudge 題解: ZeroJudge/index.md
   - TQC Python: TQC python/index.md
