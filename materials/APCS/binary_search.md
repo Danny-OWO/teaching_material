@@ -320,23 +320,54 @@ upper_bound - lower_bound
 | `lower_bound()` | 第一個 `>= target` |
 | `upper_bound()` | 第一個 `> target` |
 
-## 8. python 二分搜工具
+## 8. Python 二分搜工具
 
-Python 的工具不像 C++ `binary_search()` 那麼直觀。
+很好，Python 當然也有人幫我們刻過了，沒理由要我們每次都自己寫。  
+Python 裡可以使用 `bisect` 來進行 Binary Search。
 
-Python 提供的是：
-
-```python
-bisect
-```
-
-使用之前需要：
+使用前記得：
 
 ```python
 import bisect
 ```
 
-其中最常用的是：
+---
+
+### 1. 利用 `bisect_left()` 來尋找元素
+
+Python 沒有直接對應 C++ `binary_search()` 的函式，但我們可以利用 `bisect_left()` 很簡單地做到。
+
+```python
+a = [1, 3, 5, 7, 9]
+target = 5
+
+pos = bisect.bisect_left(a, target)
+
+if pos < len(a) and a[pos] == target:
+    print("Found!")
+else:
+    print("Not Found!")
+```
+
+`bisect_left()` 會告訴我們：
+
+```text
+第一個 >= target 的位置
+```
+
+所以只要再檢查那個位置是不是 `target`，就可以知道有沒有找到。
+
+---
+
+### 2. `bisect_left()`：找第一個 `>= target` 的位置
+
+C++ 的：
+
+```cpp
+lower_bound()
+```
+
+在 Python 基本上就是：
 
 ```python
 bisect.bisect_left()
@@ -345,13 +376,104 @@ bisect.bisect_left()
 例如：
 
 ```python
-import bisect
+a = [1, 3, 3, 3, 5, 7]
 
-lst = [1, 3, 5, 7, 9, 11]
-
-pos = bisect.bisect_left(lst, 7)
+pos = bisect.bisect_left(a, 3)
 
 print(pos)
+print(a[pos])
+```
+
+輸出：
+
+```text
+1
+3
+```
+
+Python 不需要像 C++ 一樣處理 iterator：
+
+```cpp
+auto it = lower_bound(...);
+```
+
+`bisect_left()` **直接回傳 index**。
+
+* 如果沒有人符合？
+
+```python
+a = [1, 3, 5, 7]
+
+pos = bisect.bisect_left(a, 8)
+
+print(pos)
+```
+
+輸出：
+
+```text
+4
+```
+
+因為沒有任何元素 `>= 8`，所以會回傳：
+
+```python
+len(a)
+```
+
+也就是：
+
+```text
+pos = 4
+```
+
+---
+
+### 3. `bisect_right()`：找第一個 `> target` 的位置
+
+```python
+a = [1, 3, 3, 3, 5, 7]
+
+pos = bisect.bisect_right(a, 3)
+
+print(pos)
+print(a[pos])
+```
+
+輸出：
+
+```text
+4
+5
+```
+
+因為：
+
+```text
+[1, 3, 3, 3, 5, 7]
+             ^
+             第一個 > 3
+```
+
+所以：
+
+```text
+pos = 4
+a[pos] = 5
+```
+
+---
+
+### 4. 特殊技巧：計算某個數字出現幾次
+
+這是 `bisect_left()` 和 `bisect_right()` 非常常見的組合。
+
+```python
+a = [1, 2, 2, 2, 4, 5]
+
+count = bisect.bisect_right(a, 2) - bisect.bisect_left(a, 2)
+
+print(count)
 ```
 
 輸出：
@@ -363,75 +485,17 @@ print(pos)
 因為：
 
 ```text
- index
-   ↓
-0  1  2  3  4   5
-1  3  5  7  9  11
-         ↑
+bisect_right - bisect_left
 ```
 
-`7` 位於 index `3`。
+剛好就是這個數字所佔的區間長度。
 
 ---
 
-`bisect_left()` 並不是在直接找該數字，而是
+### 5. 最常用整理
 
-> **「如果要把這個數字插進去，最左邊可以插在哪裡？」**
-
-例如：
-
-```python
-import bisect
-
-lst = [1, 3, 5, 7, 9, 11]
-
-pos = bisect.bisect_left(lst, 6)
-
-print(pos)
-```
-
-一樣會得到一個位置：
-
-```text
-3
-```
-
-`6` 雖然不在裡面，但是如果我們要插入 `6`：
-
-```text
-[1, 3, 5, 6, 7, 9, 11]
-          ↑
-```
-
-它就應該被放在 index = `3` 的位置。
-
-因此如果我們真的想判斷 `target` 存不存在，可以寫：
-
-```python
-import bisect
-
-lst = [1, 3, 5, 7, 9, 11]
-target = 7
-
-pos = bisect.bisect_left(lst, target)
-
-if pos < len(lst) and lst[pos] == target:
-    print("FIND!")
-else:
-    print("NOT FOUND!")
-```
-
----
-
-痾對，你可能會想要問：
-
-**Python 為什麼不直接去找數字是否存在？**
-~~因為python很爛~~
-
-| 想找的東西 | C++ | Python |
+| C++ | Python | 找什麼 |
 |---|---|---|
-| 有沒有 `x` | `binary_search()` | 用 `bisect_left()` 判斷 |
-
-所以這篇，我們介紹了什麼是 binary search，並且除了手刻外，我們還介紹了可以用的binary search 工具。
-
-但這還沒結束，
+| `binary_search()` | `bisect_left()` + 判斷 | target 是否存在 |
+| `lower_bound()` | `bisect_left()` | 第一個 `>= target` |
+| `upper_bound()` | `bisect_right()` | 第一個 `> target` |
