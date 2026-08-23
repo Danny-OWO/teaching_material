@@ -196,66 +196,131 @@ else:
     print("Either too big or too small")
 ```
 
-## 7. 我用 C++ && 我不想刻
+## 7. C++ 二分搜工具
 
 很好，這種東西很明顯有人刻過，沒理由要我們每次都自己寫。  
 這時，我們就能利用到 C++ 的 Binary Search 工具。
 
-> **注意：不管使用哪一種工具，資料都必須先排序好！**
-
-C++ 的 `<algorithm>` 中，有這個：
-
+使用前記得：
 ```cpp
-binary_search()
+#include <algorithm>
 ```
 
-它的特點是：可以協助我們確認
-
-> **這個元素到底在不在裡面？**
-
-例如：
+### 1. 利用 `binary_search()` 來尋找元素
 
 ```cpp
-#include <bits/stdc++.h>
-using namespace std;
+vector<int> a = {1, 3, 5, 7, 9};
 
-int main()
+if (binary_search(a.begin(), a.end(), 5))
 {
-    vector<int> lst = {1, 3, 5, 7, 9, 11};
-
-    if (binary_search(lst.begin(), lst.end(), 7))
-    {
-        cout << "FIND!" << endl;
-    }
-    else
-    {
-        cout << "NOT FOUND!" << endl;
-    }
+    cout << "Found!";
+}
+else
+{
+    cout << "Not Found!";
 }
 ```
 
-`binary_search()` 會回傳一個 `bool`：
+`binary_search()` 只會告訴你：
 
 ```text
-找到     → true
-找不到   → false
+有找到 → true
+沒找到 → false
 ```
 
-所以我們可以直接把它放進 `if` 裡面。
+---
 
-基本格式：
+### 2. `lower_bound()`：找第一個 `>= target` 的位置
 
 ```cpp
-binary_search(開始位置, 結束位置, 要找的東西);
+vector<int> a = {1, 3, 3, 3, 5, 7};
+
+auto it = lower_bound(a.begin(), a.end(), 3);
 ```
 
-對 `vector` 來說通常就是：
+如果想取得 index 並且取值：
 
 ```cpp
-binary_search(lst.begin(), lst.end(), target);
+int index = lower_bound(a.begin(), a.end(), 3) - a.begin();
+cout << index;
+cout << *it << endl;
 ```
 
-## 8. 我用 python and 我不想刻
+* 如果沒有人符合?
+
+```cpp
+vector<int> a = {1, 3, 5, 7};
+auto it = lower_bound(a.begin(), a.end(), 8);
+int pos = lower_bound(a.begin(), a.end(), 8) - a.begin();
+```
+
+```text
+it = a.end()
+pos = 4
+```
+
+### 3. `upper_bound()`：找第一個 `> target` 的位置
+
+```cpp
+vector<int> a = {1, 3, 3, 3, 5, 7};
+
+auto it = lower_bound(a.begin(), a.end(), 3);
+int pos = upper_bound(a.begin(), a.end(), 3) - a.begin();
+
+cout << *it << endl;
+cout << pos << endl;
+```
+
+```text
+5
+4
+```
+
+
+
+---
+
+### 4. 特殊技巧：計算某個數字出現幾次
+
+這是 `lower_bound()` 和 `upper_bound()` 非常常見的組合。
+
+```cpp
+vector<int> a = {1, 2, 2, 2, 4, 5};
+
+int count =
+    upper_bound(a.begin(), a.end(), 2)
+    - lower_bound(a.begin(), a.end(), 2);
+
+cout << count;
+```
+
+輸出：
+
+```text
+3
+```
+
+因為：
+
+```text
+upper_bound - lower_bound
+```
+
+剛好就是這個數字所佔的區間長度。
+
+---
+
+
+
+### 5. 最常用整理
+
+| 工具 | 找什麼 |
+|---|---|
+| `binary_search()` | target 是否存在 |
+| `lower_bound()` | 第一個 `>= target` |
+| `upper_bound()` | 第一個 `> target` |
+
+## 8. python 二分搜工具
 
 Python 的工具不像 C++ `binary_search()` 那麼直觀。
 
