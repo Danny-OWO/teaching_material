@@ -312,6 +312,99 @@ body::before {
   font-size: 0.68rem;
 }
 
+.md-typeset .source-alphabet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 1.4rem;
+  padding: 0.65rem;
+  background: rgba(8, 14, 22, 0.62);
+  border: 1px solid rgba(103, 212, 232, 0.16);
+  border-radius: 0.75rem;
+  backdrop-filter: blur(0.45rem);
+}
+
+.md-typeset .source-alphabet button {
+  display: inline-flex;
+  min-width: 2.65rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.65rem;
+  color: #bdcbd2;
+  background: rgba(18, 29, 40, 0.78);
+  border: 1px solid #314454;
+  border-radius: 0.55rem;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+
+.md-typeset .source-alphabet button span {
+  min-width: 1.1rem;
+  padding: 0.05rem 0.3rem;
+  color: #8fa5af;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 999px;
+  font-size: 0.56rem;
+}
+
+.md-typeset .source-alphabet button:hover,
+.md-typeset .source-alphabet button:focus-visible {
+  color: #ffffff;
+  border-color: #67d4e8;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.md-typeset .source-alphabet button.is-active {
+  color: #071016;
+  background: linear-gradient(135deg, #8be4f2, #58bfd4);
+  border-color: #9ceaf5;
+  box-shadow: 0 0.35rem 1rem rgba(35, 164, 190, 0.18);
+}
+
+.md-typeset .source-alphabet button.is-active span {
+  color: #17343d;
+  background: rgba(255, 255, 255, 0.38);
+}
+
+.md-typeset .source-groups {
+  display: grid;
+  gap: 1.6rem;
+}
+
+.md-typeset .source-group h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 0.7rem;
+  color: #dcecf1;
+  font-size: 0.9rem;
+}
+
+.md-typeset .source-group h2::before {
+  display: inline-grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  color: #071016;
+  background: #67d4e8;
+  border-radius: 0.45rem;
+  content: attr(data-letter);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.md-typeset .source-group h2::after {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, rgba(103, 212, 232, 0.32), transparent);
+  content: "";
+}
+
 .md-typeset .source-index {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));

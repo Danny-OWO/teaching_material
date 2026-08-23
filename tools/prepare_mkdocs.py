@@ -110,7 +110,7 @@ def write_source_index(directory_name: str) -> None:
     for source_file in source_files:
         groups.setdefault(source_file.parent, []).append(source_file)
 
-    overview = [
+    overview: list[str] = [
         f"# {directory_name} 程式索引\n\n",
         "選擇題目或章節，即可閱讀及下載原始程式碼。\n\n",
         '<label class="source-search">\n',
@@ -118,8 +118,9 @@ def write_source_index(directory_name: str) -> None:
         '  <input type="search" placeholder="例如：b923" autocomplete="off">\n',
         '</label>\n\n',
         '<p class="source-count" aria-live="polite"></p>\n\n',
-        '<div class="source-index">\n',
     ]
+
+    entries: list[dict[str, str]] = []
     for source_directory in groups:
         relative_directory = source_directory.relative_to(source_root)
         label = source_page_title(groups[source_directory][0], source_root)
@@ -129,15 +130,65 @@ def write_source_index(directory_name: str) -> None:
         )
         language_badges = "".join(f"<span>{html.escape(language)}</span>" for language in languages)
         search_text = html.escape(f"{label} {' '.join(languages)}".lower(), quote=True)
+        first_character = label[0].upper() if label and label[0].isalpha() else "#"
+        entries.append(
+            {
+                "label": html.escape(label),
+                "target": html.escape(target, quote=True),
+                "languages": language_badges,
+                "search": search_text,
+                "letter": first_character,
+            }
+        )
+
+    if directory_name == "ZeroJudge":
+        letters = sorted({entry["letter"] for entry in entries})
         overview.extend(
             [
-                f'  <a class="source-card" href="{html.escape(target, quote=True)}" data-source-search="{search_text}">\n',
-                f'    <strong>{html.escape(label)}</strong>\n',
-                f'    <span class="source-languages">{language_badges}</span>\n',
-                "  </a>\n",
+                '<nav class="source-alphabet" aria-label="按照題號首字母篩選">\n',
+                f'  <button type="button" class="is-active" data-source-letter="all" aria-pressed="true">全部 <span>{len(entries)}</span></button>\n',
             ]
         )
-    overview.extend(['</div>\n\n', '<p class="source-empty" hidden>找不到符合的題目。</p>\n'])
+        for letter in letters:
+            count = sum(entry["letter"] == letter for entry in entries)
+            overview.append(
+                f'  <button type="button" data-source-letter="{html.escape(letter.lower(), quote=True)}" aria-pressed="false">{html.escape(letter)} <span>{count}</span></button>\n'
+            )
+        overview.extend(['</nav>\n\n', '<div class="source-groups">\n'])
+        for letter in letters:
+            letter_value = html.escape(letter.lower(), quote=True)
+            overview.extend(
+                [
+                    f'  <section class="source-group" data-source-group="{letter_value}">\n',
+                    f'    <h2 id="letter-{letter_value}" data-letter="{html.escape(letter, quote=True)}">{html.escape(letter)} 系列</h2>\n',
+                    '    <div class="source-index">\n',
+                ]
+            )
+            for entry in (item for item in entries if item["letter"] == letter):
+                overview.extend(
+                    [
+                        f'      <a class="source-card" href="{entry["target"]}" data-source-search="{entry["search"]}" data-source-letter="{letter_value}">\n',
+                        f'        <strong>{entry["label"]}</strong>\n',
+                        f'        <span class="source-languages">{entry["languages"]}</span>\n',
+                        "      </a>\n",
+                    ]
+                )
+            overview.extend(["    </div>\n", "  </section>\n"])
+        overview.append("</div>\n\n")
+    else:
+        overview.append('<div class="source-index">\n')
+        for entry in entries:
+            overview.extend(
+                [
+                    f'  <a class="source-card" href="{entry["target"]}" data-source-search="{entry["search"]}">\n',
+                    f'    <strong>{entry["label"]}</strong>\n',
+                    f'    <span class="source-languages">{entry["languages"]}</span>\n',
+                    "  </a>\n",
+                ]
+            )
+        overview.append("</div>\n\n")
+
+    overview.append('<p class="source-empty" hidden>找不到符合的題目。</p>\n')
     destination_root.mkdir(parents=True, exist_ok=True)
     (destination_root / "index.md").write_text("".join(overview), encoding="utf-8")
 
