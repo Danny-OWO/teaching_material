@@ -206,7 +206,7 @@ else:
 #include <algorithm>
 ```
 
-### 1. 利用 `binary_search()` 來尋找元素
+* 1. 利用 `binary_search()` 來尋找元素
 
 ```cpp
 vector<int> a = {1, 3, 5, 7, 9};
@@ -230,7 +230,7 @@ else
 
 ---
 
-### 2. `lower_bound()`：找第一個 `>= target` 的位置
+* 2. `lower_bound()`：找第一個 `>= target` 的位置
 
 ```cpp
 vector<int> a = {1, 3, 3, 3, 5, 7};
@@ -246,7 +246,7 @@ cout << index;
 cout << *it << endl;
 ```
 
-* 如果沒有人符合?
+> 如果沒有人符合?
 
 ```cpp
 vector<int> a = {1, 3, 5, 7};
@@ -259,7 +259,7 @@ it = a.end()
 pos = 4
 ```
 
-### 3. `upper_bound()`：找第一個 `> target` 的位置
+* 3. `upper_bound()`：找第一個 `> target` 的位置
 
 ```cpp
 vector<int> a = {1, 3, 3, 3, 5, 7};
@@ -280,7 +280,7 @@ cout << pos << endl;
 
 ---
 
-### 4. 特殊技巧：計算某個數字出現幾次
+* 4. 特殊技巧：計算某個數字出現幾次
 
 這是 `lower_bound()` 和 `upper_bound()` 非常常見的組合。
 
@@ -312,7 +312,7 @@ upper_bound - lower_bound
 
 
 
-### 5. 最常用整理
+* 5. 最常用整理
 
 | 工具 | 找什麼 |
 |---|---|
@@ -333,7 +333,7 @@ import bisect
 
 ---
 
-### 1. 利用 `bisect_left()` 來尋找元素
+* 1. 利用 `bisect_left()` 來尋找元素
 
 Python 沒有直接對應 C++ `binary_search()` 的函式，但我們可以利用 `bisect_left()` 很簡單地做到。
 
@@ -359,7 +359,7 @@ else:
 
 ---
 
-### 2. `bisect_left()`：找第一個 `>= target` 的位置
+* 2. `bisect_left()`：找第一個 `>= target` 的位置
 
 ```python
 a = [1, 3, 3, 3, 5, 7]
@@ -377,7 +377,7 @@ print(a[pos])
 3
 ```
 
-* 如果沒有人符合？
+> 如果沒有人符合？
 
 ```python
 a = [1, 3, 5, 7]
@@ -401,7 +401,7 @@ len(a)
 我們便可以以此判斷是否有沒找到的情況
 ---
 
-### 3. `bisect_right()`：找第一個 `> target` 的位置
+* 3. `bisect_right()`：找第一個 `> target` 的位置
 
 ```python
 a = [1, 3, 3, 3, 5, 7]
@@ -436,7 +436,7 @@ a[pos] = 5
 
 ---
 
-### 4. 特殊技巧：計算某個數字出現幾次
+* 4. 特殊技巧：計算某個數字出現幾次
 
 這是 `bisect_left()` 和 `bisect_right()` 非常常見的組合。
 
@@ -464,7 +464,7 @@ bisect_right - bisect_left
 
 ---
 
-### 5. 最常用整理
+* 5. 最常用整理
 
 | C++ | Python | 找什麼 |
 |---|---|---|
@@ -474,7 +474,7 @@ bisect_right - bisect_left
 
 
 
-## 8. binary_search 練習題目
+## 9. binary_search 練習題目
 
 二分搜通常不太會獨立出題，只會是一個好用工具。
 那我知道你 **超級想要練習**
