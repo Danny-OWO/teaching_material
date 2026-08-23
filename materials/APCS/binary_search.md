@@ -361,20 +361,6 @@ else:
 
 ### 2. `bisect_left()`：找第一個 `>= target` 的位置
 
-C++ 的：
-
-```cpp
-lower_bound()
-```
-
-在 Python 基本上就是：
-
-```python
-bisect.bisect_left()
-```
-
-例如：
-
 ```python
 a = [1, 3, 3, 3, 5, 7]
 
@@ -390,14 +376,6 @@ print(a[pos])
 1
 3
 ```
-
-Python 不需要像 C++ 一樣處理 iterator：
-
-```cpp
-auto it = lower_bound(...);
-```
-
-`bisect_left()` **直接回傳 index**。
 
 * 如果沒有人符合？
 
@@ -420,13 +398,7 @@ print(pos)
 ```python
 len(a)
 ```
-
-也就是：
-
-```text
-pos = 4
-```
-
+我們便可以以此判斷是否有沒找到的情況
 ---
 
 ### 3. `bisect_right()`：找第一個 `> target` 的位置
@@ -499,3 +471,81 @@ bisect_right - bisect_left
 | `binary_search()` | `bisect_left()` + 判斷 | target 是否存在 |
 | `lower_bound()` | `bisect_left()` | 第一個 `>= target` |
 | `upper_bound()` | `bisect_right()` | 第一個 `> target` |
+
+
+
+## 8. binary_search 練習題目
+
+二分搜通常不太會獨立出題，只會是一個好用工具。
+那我知道你 **超級想要練習**
+
+那就...
+```text
+Given two integers n and m, create a sorted list containing all integers from 1 to n, where m is the target value.
+
+Find m using both:
+- Linear search with O(n) time complexity
+- Binary search with O(log n) time complexity
+
+Use Python's time module to measure and compare the execution time of the two approaches.
+```
+
+```text
+Test case:
+n = 1000000
+m = 894003
+```
+
+```python
+import datetime
+import bisect
+
+n = int(input())
+m = int(input())
+
+lst = [i for i in range(1, n + 1)]
+
+# Linear Search
+linear_time_start = datetime.datetime.now()
+
+for x in lst:
+    if x == m:
+        break
+
+linear_time_end = datetime.datetime.now()
+
+
+# Binary Search
+binary_time_start = datetime.datetime.now()
+
+pos = bisect.bisect_left(lst, m)
+
+binary_time_end = datetime.datetime.now()
+
+
+# Calculate execution time
+linear_time = linear_time_end - linear_time_start
+binary_time = binary_time_end - binary_time_start
+
+print("Linear Search:", linear_time)
+print("Binary Search:", binary_time)
+
+```
+
+測試結果
+
+```text
+Linear Search: 0:00:00.020378
+Binary Search: 0:00:00.000009
+```
+
+### 二分搜題目
+* [**f581.3. 圓環出口**](https://zerojudge.tw/ShowProblem?problemid=f581)
+
+
+### 二分搜尋樹 (這不該是這一章的)
+* [**a265.紅黑樹**](https://zerojudge.tw/ShowProblem?problemid=a265)
+
+
+### 利用 binary_search 否則 TLE
+* [**i401.3. 雷射測試**](https://zerojudge.tw/ShowProblem?problemid=i401)
