@@ -279,33 +279,68 @@ def write_markdown_index(directory_name: str) -> None:
 
 
 def write_generated_config() -> None:
-    """Generate a collapsible APCS sidebar from the current Markdown files."""
+    """Generate a collapsible sidebar that mirrors the material folders."""
     base_config = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
     base_config = re.sub(r"(?ms)^nav:\s*\n.*\Z", "", base_config).rstrip()
-    markdown_files = sorted(
-        (MATERIALS / "APCS").glob("*.md"),
-        key=lambda path: (not path.name.lower().startswith("learning route"), path.name.lower()),
-    )
 
     nav = [
         "",
         "nav:",
         '  - "首頁": "index.md"',
-        '  - "APCS 課程":',
-        '      - "教材索引": "APCS/index.md"',
     ]
-    for markdown_file in markdown_files:
-        title = json.dumps(markdown_title(markdown_file), ensure_ascii=False)
-        target = json.dumps(f"APCS/{markdown_file.name}", ensure_ascii=False)
-        nav.append(f"      - {title}: {target}")
-    nav.extend(
-        [
-            '  - "CodeCat": "codecat/index.md"',
-            '  - "ZeroJudge 題解": "ZeroJudge/index.md"',
-            '  - "TQC Python": "TQC python/index.md"',
-            "",
-        ]
+
+    for directory_name, section_title in (("APCS", "APCS 課程"), ("codecat", "CodeCat")):
+        markdown_files = sorted(
+            (MATERIALS / directory_name).glob("*.md"),
+            key=lambda path: (not path.name.lower().startswith("learning route"), path.name.lower()),
+        )
+        nav.extend(
+            [
+                f"  - {json.dumps(section_title, ensure_ascii=False)}:",
+                f"      - \"教材索引\": {json.dumps(f'{directory_name}/index.md', ensure_ascii=False)}",
+            ]
+        )
+        for markdown_file in markdown_files:
+            title = json.dumps(markdown_title(markdown_file), ensure_ascii=False)
+            target = json.dumps(f"{directory_name}/{markdown_file.name}", ensure_ascii=False)
+            nav.append(f"      - {title}: {target}")
+
+    zerojudge_root = MATERIALS / "ZeroJudge"
+    problem_directories = sorted(
+        (
+            directory
+            for directory in zerojudge_root.iterdir()
+            if directory.is_dir()
+            and any(path.suffix.lower() in {".cpp", ".py"} for path in directory.rglob("*"))
+        ),
+        key=lambda path: path.name.lower(),
     )
+    nav.extend(['  - "ZeroJudge 題解":', '      - "題目索引": "ZeroJudge/index.md"'])
+    for letter in sorted({directory.name[0].upper() for directory in problem_directories}):
+        nav.append(f'      - "{letter} 系列":')
+        for directory in (item for item in problem_directories if item.name[0].upper() == letter):
+            label = json.dumps(directory.name, ensure_ascii=False)
+            target = json.dumps(f"ZeroJudge/{directory.name}/index.md", ensure_ascii=False)
+            nav.append(f"          - {label}: {target}")
+
+    tqc_root = MATERIALS / "TQC python"
+    tqc_directories = sorted(
+        (
+            directory
+            for directory in tqc_root.rglob("*")
+            if directory.is_dir()
+            and any(path.suffix.lower() in {".cpp", ".py"} for path in directory.glob("*"))
+        ),
+        key=lambda path: path.relative_to(tqc_root).as_posix().lower(),
+    )
+    nav.extend(['  - "TQC Python":', '      - "程式索引": "TQC python/index.md"'])
+    for directory in tqc_directories:
+        relative_directory = directory.relative_to(tqc_root).as_posix()
+        label = json.dumps(relative_directory, ensure_ascii=False)
+        target = json.dumps(f"TQC python/{relative_directory}/index.md", ensure_ascii=False)
+        nav.append(f"      - {label}: {target}")
+
+    nav.append("")
     GENERATED_CONFIG.write_text(base_config + "\n" + "\n".join(nav), encoding="utf-8")
 
 
