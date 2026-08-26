@@ -266,24 +266,3 @@ $$
 # 9. 題目
 
 [e340. 差分練習](https://zerojudge.tw/ShowProblem?problemid=e340)
-
-# 10. 與 Prefix Sum 的關係
-
-可以把兩者看成相反的操作：
-
-| 技巧               | 作用          |
-| ---------------- | ----------- |
-| Prefix Sum       | 將原陣列累積成前綴和  |
-| Difference Array | 記錄相鄰元素之間的變化 |
-| 差分 → Prefix Sum  | 還原原本的陣列     |
-
-一維差分陣列的核心可以簡化成：
-
-```text
-區間 [l, r] + x
-
-D[l]     += x
-D[r + 1] -= x
-
-最後 Prefix Sum 還原
-```
