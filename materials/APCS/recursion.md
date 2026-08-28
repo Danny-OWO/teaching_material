@@ -175,3 +175,8 @@ $n = 64$ 時（傳說中僧侶搬的數量），需要 $2^{64} - 1 \approx 1.84 
 
 至於**遞迴如何優化**，我們在其他的md中再討論。
 去享用你的大中小甜甜圈吧!
+
+## 4.題目練習
+
+* [**c002.10696 - f91**](https://zerojudge.tw/ShowProblem?problemid=c002)  
+* [**Tower of Hanoi**](https://cses.fi/problemset/task/2165)
