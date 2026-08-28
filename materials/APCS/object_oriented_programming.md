@@ -252,3 +252,195 @@ what: pretend to be KOBE
 
 注意這裡的呼叫方式喔， 是 **sus1.list_identity()** 而不是 **list_identity(sus1)**  
 像這樣，我們可以很好維護我們的程式碼，也不用在外面每次用四個print來達成目的。
+
+
+## 5. 應用：建立一個二元樹
+
+愛護環境人人有責，種樹能協助大自然發展、減緩氣候暖化，所以我們就來多種一點——**二元樹（Binary Tree）**。
+
+二元樹會是之後學習 **DFS、BFS** 與各種樹狀資料結構的重要基礎之一，那就廢話不多說。
+
+顧名思義，二元樹中的每個節點（Node）**最多只會有兩個子節點**，分別稱為：
+
+- 左子節點（Left Child）
+- 右子節點（Right Child）
+
+例如：
+
+```mermaid
+graph TD
+    A[8] --> B[3]
+    A --> C[10]
+    B --> D[1]
+    B --> E[6]
+    C --> F[14]
+```
+
+如果額外規定：
+左子樹的值比節點小，右子樹的值比節點大
+
+那我們通常稱它為 二元搜尋樹 (Binary Search Tree, BST)。
+```c++
+#include <bits/stdc++.h>
+using namespace std;
+
+class Node
+{
+public:
+    int num;
+    Node* l; //指向 node 的 pointer
+    Node* r; //指向 node 的 pointer
+
+    Node(int num)
+    {
+        this -> num = num;
+        this -> l = nullptr; // 空 pointer
+        this -> r = nullptr; // 空 pointer
+    }
+};
+
+int main()
+{
+    Node* x = new Node(10);
+
+    x -> l = new Node(2);
+    x -> r = new Node(25);
+
+    cout << x -> r -> num << endl;
+    cout << x -> l -> num << endl;
+    cout << x -> num << endl;
+}
+```
+
+```python
+class Node:
+    def __init__(self, num):
+        self.l = None
+        self.r = None
+        self.num = num
+
+x = Node(10)
+x.l = Node(2)
+x.r = Node(25)
+
+print(x.r.num)
+print(x.l.num)
+print(x.num)
+```
+
+```text
+25
+2
+10
+```
+## 6. 練習
+
+好，接下來是種樹時間：
+
+給定你 n 個數字，利用空白隔開，建立出一個二元搜尋樹。
+
+測試資料
+
+```text
+8
+5 10 12 7 45 1 23 22
+```
+
+
+```python
+n = int(input())
+
+class Node:
+    def __init__(self, num):
+        self.num = num
+        self.l = None
+        self.r = None
+
+lst = [int(x) for x in input().split()]
+
+st = Node(lst[0])
+
+for i in range(1, n):
+    cur = st
+
+    while True:
+        if cur.num < lst[i]:
+            if cur.r is None:
+                cur.r = Node(lst[i])
+                break
+            else:
+                cur = cur.r
+        else:
+            if cur.l is None:
+                cur.l = Node(lst[i])
+                break
+            else:
+                cur = cur.l
+```
+
+```c++
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+class Node
+{
+public:
+    ll num;
+    Node* l;
+    Node* r;
+
+    Node(ll num)
+    {
+        this->num = num;
+        this->l = nullptr;
+        this->r = nullptr;
+    }
+};
+
+int main()
+{
+    ll n;
+    cin >> n;
+
+    ll a;
+    cin >> a;
+
+    Node* st = new Node(a);
+
+    for (ll i = 1; i < n; i++)
+    {
+        cin >> a;
+
+        Node* cur = st;
+
+        while (true)
+        {
+            if (a < cur->num)
+            {
+                if (cur->l == nullptr)
+                {
+                    cur->l = new Node(a);
+                    break;
+                }
+                else
+                {
+                    cur = cur->l;
+                }
+            }
+            else
+            {
+                if (cur->r == nullptr)
+                {
+                    cur->r = new Node(a);
+                    break;
+                }
+                else
+                {
+                    cur = cur->r;
+                }
+            }
+        }
+    }
+}
+```
