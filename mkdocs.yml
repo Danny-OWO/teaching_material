@@ -13,6 +13,7 @@ use_directory_urls: true
 not_in_nav: |
   APCS/*.md
   codecat/*.md
+  CSES_problem_set/*/index.md
   ZeroJudge/*/index.md
   TQC python/*/index.md
 
@@ -69,5 +70,6 @@ nav:
   - 首頁: index.md
   - APCS 課程: APCS/index.md
   - CodeCat: codecat/index.md
+  - CSES Problem Set: CSES_problem_set/index.md
   - ZeroJudge 題解: ZeroJudge/index.md
   - TQC Python: TQC python/index.md

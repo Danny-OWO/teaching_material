@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DESTINATION = ROOT / ".mkdocs-docs"
 GENERATED_CONFIG = ROOT / ".mkdocs.generated.yml"
 MATERIALS = ROOT / "materials"
-SOURCE_DIRECTORIES = ("APCS", "codecat", "TQC python", "ZeroJudge")
+SOURCE_DIRECTORIES = ("APCS", "codecat", "CSES_problem_set", "TQC python", "ZeroJudge")
 PUBLISHED_SUFFIXES = {".md", ".txt", ".jpg", ".jpeg", ".png", ".gif", ".svg", ".cpp", ".py"}
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".gif", ".svg"}
 
@@ -98,8 +98,9 @@ def markdown_title(path: Path) -> str:
     return heading.group(1) if heading else path.stem
 
 
-def write_source_index(directory_name: str) -> None:
+def write_source_index(directory_name: str, display_name: str | None = None) -> None:
     """Create navigable source-code pages in the disposable build tree."""
+    display_name = display_name or directory_name
     source_root = MATERIALS / directory_name
     destination_root = DESTINATION / directory_name
     source_files = sorted(
@@ -111,7 +112,7 @@ def write_source_index(directory_name: str) -> None:
         groups.setdefault(source_file.parent, []).append(source_file)
 
     overview: list[str] = [
-        f"# {directory_name} 程式索引\n\n",
+        f"# {display_name} 程式索引\n\n",
         "選擇題目或章節，即可閱讀及下載原始程式碼。\n\n",
         '<label class="source-search">\n',
         '  <span>搜尋題號</span>\n',
@@ -305,6 +306,28 @@ def write_generated_config() -> None:
             target = json.dumps(f"{directory_name}/{markdown_file.name}", ensure_ascii=False)
             nav.append(f"      - {title}: {target}")
 
+    cses_root = MATERIALS / "CSES_problem_set"
+    cses_directories = sorted(
+        (
+            directory
+            for directory in cses_root.rglob("*")
+            if directory.is_dir()
+            and any(path.suffix.lower() in {".cpp", ".py"} for path in directory.glob("*"))
+        ),
+        key=lambda path: path.relative_to(cses_root).as_posix().lower(),
+    )
+    nav.extend(
+        [
+            '  - "CSES Problem Set":',
+            '      - "題目索引": "CSES_problem_set/index.md"',
+        ]
+    )
+    for directory in cses_directories:
+        relative_directory = directory.relative_to(cses_root).as_posix()
+        label = json.dumps(relative_directory, ensure_ascii=False)
+        target = json.dumps(f"CSES_problem_set/{relative_directory}/index.md", ensure_ascii=False)
+        nav.append(f"      - {label}: {target}")
+
     zerojudge_root = MATERIALS / "ZeroJudge"
     problem_directories = sorted(
         (
@@ -360,6 +383,7 @@ def main() -> None:
         copy_published_files(source, DESTINATION / directory_name)
 
     write_source_index("ZeroJudge")
+    write_source_index("CSES_problem_set", "CSES Problem Set")
     write_source_index("TQC python")
     write_markdown_index("APCS")
     write_markdown_index("codecat")
