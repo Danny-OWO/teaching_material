@@ -12,9 +12,32 @@ ROOT = Path(__file__).resolve().parents[1]
 DESTINATION = ROOT / ".mkdocs-docs"
 GENERATED_CONFIG = ROOT / ".mkdocs.generated.yml"
 MATERIALS = ROOT / "materials"
-SOURCE_DIRECTORIES = ("APCS", "codecat", "CSES_problem_set", "TQC python", "ZeroJudge")
-PUBLISHED_SUFFIXES = {".md", ".txt", ".jpg", ".jpeg", ".png", ".gif", ".svg", ".cpp", ".py"}
+PUBLISHED_SUFFIXES = {
+    ".md", ".txt", ".jpg", ".jpeg", ".png", ".gif", ".svg",
+    ".cpp", ".py", ".ipynb", ".pdf",
+}
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".gif", ".svg"}
+SOURCE_SUFFIXES = {".cpp", ".py"}
+DISPLAY_NAMES = {
+    "APCS": "APCS 課程",
+    "codecat": "CodeCat",
+    "CSES_problem_set": "CSES Problem Set",
+    "leetcode": "LeetCode",
+    "TQC python": "TQC Python",
+    "ZeroJudge": "ZeroJudge 題解",
+}
+
+
+def material_directories() -> list[Path]:
+    """Return every non-hidden top-level material directory."""
+    return sorted(
+        (path for path in MATERIALS.iterdir() if path.is_dir() and not path.name.startswith(".")),
+        key=lambda path: path.name.lower(),
+    )
+
+
+def display_name(directory_name: str) -> str:
+    return DISPLAY_NAMES.get(directory_name, directory_name.replace("_", " "))
 
 
 def normalize_markdown_tables(path: Path) -> None:
@@ -124,8 +147,8 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
     entries: list[dict[str, str]] = []
     for source_directory in groups:
         relative_directory = source_directory.relative_to(source_root)
-        label = source_page_title(groups[source_directory][0], source_root)
-        target = "./" if relative_directory == Path(".") else f"{relative_directory.as_posix()}/"
+        label = "根目錄" if relative_directory == Path(".") else source_page_title(groups[source_directory][0], source_root)
+        target = "_root/" if relative_directory == Path(".") else f"{relative_directory.as_posix()}/"
         languages = sorted(
             {"C++" if path.suffix.lower() == ".cpp" else "Python" for path in groups[source_directory]}
         )
@@ -195,14 +218,12 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
 
     for source_directory, files in groups.items():
         relative_directory = source_directory.relative_to(source_root)
-        if relative_directory == Path("."):
-            # The overview already occupies the root index; root-level files are
-            # linked there without replacing it.
-            continue
-        page_directory = destination_root / relative_directory
+        is_root = relative_directory == Path(".")
+        page_directory = destination_root / ("_root" if is_root else relative_directory)
         page_directory.mkdir(parents=True, exist_ok=True)
-        title = source_page_title(files[0], source_root)
-        page = [f"# {title}\n\n", "[← 回到程式索引](../index.md)\n\n"]
+        title = "根目錄" if is_root else source_page_title(files[0], source_root)
+        back_link = "../index.md" if is_root else "../" * len(relative_directory.parts) + "index.md"
+        page = [f"# {title}\n\n", f"[← 回到程式索引]({back_link})\n\n"]
         image_files = sorted(
             (
                 path
@@ -228,13 +249,14 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
                 )
             page.extend(["</div>\n\n"])
         for source_file in files:
-            copied_file = page_directory / source_file.name
+            copied_file = destination_root / source_file.relative_to(source_root)
+            source_link = f"../{source_file.name}" if is_root else source_file.name
             language = "cpp" if source_file.suffix.lower() == ".cpp" else "python"
             source_text = copied_file.read_text(encoding="utf-8", errors="replace").rstrip()
             page.extend(
                 [
                     f"## `{source_file.name}`\n\n",
-                    f"[開啟原始檔]({source_file.name}){{ .source-download }}\n\n",
+                    f"[開啟原始檔]({source_link}){{ .source-download }}\n\n",
                     f"````{language}\n{source_text}\n````\n\n",
                 ]
             )
@@ -279,6 +301,39 @@ def write_markdown_index(directory_name: str) -> None:
     (destination_root / "index.md").write_text("".join(overview), encoding="utf-8")
 
 
+def write_file_index(directory_name: str) -> None:
+    """Create a fallback index for categories containing downloadable files."""
+    source_root = MATERIALS / directory_name
+    destination_root = DESTINATION / directory_name
+    files = sorted(
+        (
+            path for path in source_root.rglob("*")
+            if path.is_file()
+            and path.suffix.lower() in PUBLISHED_SUFFIXES
+            and path.suffix.lower() not in IMAGE_SUFFIXES
+        ),
+        key=lambda path: path.relative_to(source_root).as_posix().lower(),
+    )
+    overview = [
+        f"# {display_name(directory_name)} 索引\n\n",
+        "此分類中的檔案由建置程式自動整理。\n\n",
+        '<div class="source-index">\n',
+    ]
+    for path in files:
+        relative = path.relative_to(source_root).as_posix()
+        overview.extend(
+            [
+                f'  <a class="source-card" href="{quote(relative)}">\n',
+                f'    <strong>{html.escape(path.name)}</strong>\n',
+                f'    <span class="lesson-filename">{html.escape(relative)}</span>\n',
+                "  </a>\n",
+            ]
+        )
+    overview.append("</div>\n")
+    destination_root.mkdir(parents=True, exist_ok=True)
+    (destination_root / "index.md").write_text("".join(overview), encoding="utf-8")
+
+
 def write_generated_config() -> None:
     """Generate a collapsible sidebar that mirrors the material folders."""
     base_config = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
@@ -290,78 +345,48 @@ def write_generated_config() -> None:
         '  - "首頁": "index.md"',
     ]
 
-    for directory_name, section_title in (("APCS", "APCS 課程"), ("codecat", "CodeCat")):
+    for material_directory in material_directories():
+        directory_name = material_directory.name
+        section_title = display_name(directory_name)
         markdown_files = sorted(
             (MATERIALS / directory_name).glob("*.md"),
             key=lambda path: (not path.name.lower().startswith("learning route"), path.name.lower()),
         )
-        nav.extend(
-            [
-                f"  - {json.dumps(section_title, ensure_ascii=False)}:",
-                f"      - \"教材索引\": {json.dumps(f'{directory_name}/index.md', ensure_ascii=False)}",
-            ]
+        nav.append(f"  - {json.dumps(section_title, ensure_ascii=False)}:")
+        if markdown_files:
+            nav.append(f"      - \"教材索引\": {json.dumps(f'{directory_name}/index.md', ensure_ascii=False)}")
+            for markdown_file in markdown_files:
+                title = json.dumps(markdown_title(markdown_file), ensure_ascii=False)
+                target = json.dumps(f"{directory_name}/{markdown_file.name}", ensure_ascii=False)
+                nav.append(f"      - {title}: {target}")
+            continue
+
+        source_directories = sorted(
+            (
+                directory for directory in material_directory.rglob("*")
+                if directory.is_dir()
+                and any(path.suffix.lower() in SOURCE_SUFFIXES for path in directory.glob("*"))
+            ),
+            key=lambda path: path.relative_to(material_directory).as_posix().lower(),
         )
-        for markdown_file in markdown_files:
-            title = json.dumps(markdown_title(markdown_file), ensure_ascii=False)
-            target = json.dumps(f"{directory_name}/{markdown_file.name}", ensure_ascii=False)
-            nav.append(f"      - {title}: {target}")
-
-    cses_root = MATERIALS / "CSES_problem_set"
-    cses_directories = sorted(
-        (
-            directory
-            for directory in cses_root.rglob("*")
-            if directory.is_dir()
-            and any(path.suffix.lower() in {".cpp", ".py"} for path in directory.glob("*"))
-        ),
-        key=lambda path: path.relative_to(cses_root).as_posix().lower(),
-    )
-    nav.extend(
-        [
-            '  - "CSES Problem Set":',
-            '      - "題目索引": "CSES_problem_set/index.md"',
-        ]
-    )
-    for directory in cses_directories:
-        relative_directory = directory.relative_to(cses_root).as_posix()
-        label = json.dumps(relative_directory, ensure_ascii=False)
-        target = json.dumps(f"CSES_problem_set/{relative_directory}/index.md", ensure_ascii=False)
-        nav.append(f"      - {label}: {target}")
-
-    zerojudge_root = MATERIALS / "ZeroJudge"
-    problem_directories = sorted(
-        (
-            directory
-            for directory in zerojudge_root.iterdir()
-            if directory.is_dir()
-            and any(path.suffix.lower() in {".cpp", ".py"} for path in directory.rglob("*"))
-        ),
-        key=lambda path: path.name.lower(),
-    )
-    nav.extend(['  - "ZeroJudge 題解":', '      - "題目索引": "ZeroJudge/index.md"'])
-    for letter in sorted({directory.name[0].upper() for directory in problem_directories}):
-        nav.append(f'      - "{letter} 系列":')
-        for directory in (item for item in problem_directories if item.name[0].upper() == letter):
-            label = json.dumps(directory.name, ensure_ascii=False)
-            target = json.dumps(f"ZeroJudge/{directory.name}/index.md", ensure_ascii=False)
-            nav.append(f"          - {label}: {target}")
-
-    tqc_root = MATERIALS / "TQC python"
-    tqc_directories = sorted(
-        (
-            directory
-            for directory in tqc_root.rglob("*")
-            if directory.is_dir()
-            and any(path.suffix.lower() in {".cpp", ".py"} for path in directory.glob("*"))
-        ),
-        key=lambda path: path.relative_to(tqc_root).as_posix().lower(),
-    )
-    nav.extend(['  - "TQC Python":', '      - "程式索引": "TQC python/index.md"'])
-    for directory in tqc_directories:
-        relative_directory = directory.relative_to(tqc_root).as_posix()
-        label = json.dumps(relative_directory, ensure_ascii=False)
-        target = json.dumps(f"TQC python/{relative_directory}/index.md", ensure_ascii=False)
-        nav.append(f"      - {label}: {target}")
+        index_label = "程式索引" if source_directories else "檔案索引"
+        nav.append(f"      - {json.dumps(index_label, ensure_ascii=False)}: {json.dumps(f'{directory_name}/index.md', ensure_ascii=False)}")
+        if directory_name == "ZeroJudge":
+            for letter in sorted({directory.name[0].upper() for directory in source_directories}):
+                nav.append(f'      - "{letter} 系列":')
+                for directory in (item for item in source_directories if item.name[0].upper() == letter):
+                    relative = directory.relative_to(material_directory).as_posix()
+                    nav.append(
+                        f"          - {json.dumps(relative, ensure_ascii=False)}: "
+                        f"{json.dumps(f'{directory_name}/{relative}/index.md', ensure_ascii=False)}"
+                    )
+        else:
+            for directory in source_directories:
+                relative = directory.relative_to(material_directory).as_posix()
+                nav.append(
+                    f"      - {json.dumps(relative, ensure_ascii=False)}: "
+                    f"{json.dumps(f'{directory_name}/{relative}/index.md', ensure_ascii=False)}"
+                )
 
     nav.append("")
     GENERATED_CONFIG.write_text(base_config + "\n" + "\n".join(nav), encoding="utf-8")
@@ -378,15 +403,18 @@ def main() -> None:
 
     shutil.copytree(ROOT / "website", DESTINATION, dirs_exist_ok=True)
 
-    for directory_name in SOURCE_DIRECTORIES:
-        source = MATERIALS / directory_name
-        copy_published_files(source, DESTINATION / directory_name)
-
-    write_source_index("ZeroJudge")
-    write_source_index("CSES_problem_set", "CSES Problem Set")
-    write_source_index("TQC python")
-    write_markdown_index("APCS")
-    write_markdown_index("codecat")
+    for material_directory in material_directories():
+        directory_name = material_directory.name
+        copy_published_files(material_directory, DESTINATION / directory_name)
+        if any(material_directory.glob("*.md")):
+            write_markdown_index(directory_name)
+        elif any(
+            path.is_file() and path.suffix.lower() in SOURCE_SUFFIXES
+            for path in material_directory.rglob("*")
+        ):
+            write_source_index(directory_name, display_name(directory_name))
+        else:
+            write_file_index(directory_name)
     write_generated_config()
 
 
