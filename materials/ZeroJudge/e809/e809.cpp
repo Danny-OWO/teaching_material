@@ -18,7 +18,19 @@ int main()
     int temp = 0;
     for (int j = 0; j < x.size(); j++)
     {
+        temp += nums[x[j]-'A'];
+        prefix.push_back(temp);
+    }
 
+    int n;
+    cin >> n;
+
+    for (int u = 0; u < n; u++)
+    {
+        int uu; cin >> uu;
+        int index = lower_bound(prefix.begin(), prefix.end(), uu) - prefix.begin();
+        //cout << index << endl;
+        cout << x[index-1] << endl;
     }
 
 
