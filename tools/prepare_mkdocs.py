@@ -122,12 +122,16 @@ def markdown_title(path: Path) -> str:
 
 
 def write_source_index(directory_name: str, display_name: str | None = None) -> None:
-    """Create navigable source-code pages in the disposable build tree."""
+    """Create navigable lesson and source-code pages in the disposable build tree."""
     display_name = display_name or directory_name
     source_root = MATERIALS / directory_name
     destination_root = DESTINATION / directory_name
+    markdown_files = sorted(
+        source_root.glob("*.md"),
+        key=lambda path: (not path.name.lower().startswith("learning route"), path.name.lower()),
+    )
     source_files = sorted(
-        (path for path in source_root.rglob("*") if path.suffix.lower() in {".cpp", ".py"}),
+        (path for path in source_root.rglob("*") if path.suffix.lower() in SOURCE_SUFFIXES),
         key=lambda path: path.relative_to(source_root).as_posix().lower(),
     )
     groups: dict[Path, list[Path]] = {}
@@ -135,14 +139,29 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
         groups.setdefault(source_file.parent, []).append(source_file)
 
     overview: list[str] = [
-        f"# {display_name} 程式索引\n\n",
-        "選擇題目或章節，即可閱讀及下載原始程式碼。\n\n",
+        f"# {display_name} {'教材與程式' if markdown_files else '程式'}索引\n\n",
+        "選擇教材、題目或章節，即可閱讀內容及原始程式碼。\n\n",
         '<label class="source-search">\n',
-        '  <span>搜尋題號</span>\n',
-        '  <input type="search" placeholder="例如：b923" autocomplete="off">\n',
+        '  <span>搜尋內容</span>\n',
+        '  <input type="search" placeholder="輸入章節、題號或檔名" autocomplete="off">\n',
         '</label>\n\n',
         '<p class="source-count" aria-live="polite"></p>\n\n',
     ]
+
+    if markdown_files:
+        overview.extend(["## 教材\n\n", '<div class="source-index lesson-index">\n'])
+        for markdown_file in markdown_files:
+            title = markdown_title(markdown_file)
+            search_text = html.escape(f"{title} {markdown_file.stem}".lower(), quote=True)
+            overview.extend(
+                [
+                    f'  <a class="source-card" href="{quote(markdown_file.stem)}/" data-source-search="{search_text}">\n',
+                    f'    <strong>{html.escape(title)}</strong>\n',
+                    f'    <span class="lesson-filename">{html.escape(markdown_file.name)}</span>\n',
+                    "  </a>\n",
+                ]
+            )
+        overview.extend(["</div>\n\n", "## 程式與題目\n\n"])
 
     entries: list[dict[str, str]] = []
     for source_directory in groups:
@@ -352,8 +371,12 @@ def write_generated_config() -> None:
             (MATERIALS / directory_name).glob("*.md"),
             key=lambda path: (not path.name.lower().startswith("learning route"), path.name.lower()),
         )
+        source_files = [
+            path for path in material_directory.rglob("*")
+            if path.is_file() and path.suffix.lower() in SOURCE_SUFFIXES
+        ]
         nav.append(f"  - {json.dumps(section_title, ensure_ascii=False)}:")
-        if markdown_files:
+        if markdown_files and not source_files:
             nav.append(f"      - \"教材索引\": {json.dumps(f'{directory_name}/index.md', ensure_ascii=False)}")
             for markdown_file in markdown_files:
                 title = json.dumps(markdown_title(markdown_file), ensure_ascii=False)
@@ -369,8 +392,12 @@ def write_generated_config() -> None:
             ),
             key=lambda path: path.relative_to(material_directory).as_posix().lower(),
         )
-        index_label = "程式索引" if source_directories else "檔案索引"
+        index_label = "教材與程式索引" if markdown_files else ("程式索引" if source_files else "檔案索引")
         nav.append(f"      - {json.dumps(index_label, ensure_ascii=False)}: {json.dumps(f'{directory_name}/index.md', ensure_ascii=False)}")
+        for markdown_file in markdown_files:
+            title = json.dumps(markdown_title(markdown_file), ensure_ascii=False)
+            target = json.dumps(f"{directory_name}/{markdown_file.name}", ensure_ascii=False)
+            nav.append(f"      - {title}: {target}")
         if directory_name == "ZeroJudge":
             for letter in sorted({directory.name[0].upper() for directory in source_directories}):
                 nav.append(f'      - "{letter} 系列":')
@@ -406,13 +433,14 @@ def main() -> None:
     for material_directory in material_directories():
         directory_name = material_directory.name
         copy_published_files(material_directory, DESTINATION / directory_name)
-        if any(material_directory.glob("*.md")):
-            write_markdown_index(directory_name)
-        elif any(
+        has_source_files = any(
             path.is_file() and path.suffix.lower() in SOURCE_SUFFIXES
             for path in material_directory.rglob("*")
-        ):
+        )
+        if has_source_files:
             write_source_index(directory_name, display_name(directory_name))
+        elif any(material_directory.glob("*.md")):
+            write_markdown_index(directory_name)
         else:
             write_file_index(directory_name)
     write_generated_config()
