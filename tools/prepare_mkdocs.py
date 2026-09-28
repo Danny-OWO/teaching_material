@@ -215,10 +215,11 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
         key=str.lower,
     )
 
+    index_kind = "題庫" if has_problem_notes else ("教材與程式" if markdown_files else "程式")
     overview: list[str] = [
-        f"# {display_name} {'教材與程式' if markdown_files else '程式'}索引\n\n",
+        f"# {display_name} {index_kind}索引\n\n",
         (
-            "用關鍵字、難度與主題交叉篩選。五題不是五份孤立的答案，而是一條從基本資料結構走到答案二分的學習路徑。\n\n"
+            "用關鍵字、難度與主題交叉篩選，並依建議學習順序逐步建立解題模式。\n\n"
             if has_problem_notes
             else "選擇教材、題目或章節，即可閱讀內容及原始程式碼。\n\n"
         ),
@@ -320,7 +321,7 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
     if has_problem_notes:
         entries.sort(key=lambda entry: (int(entry["route_order"]), entry["sort_title"]))
 
-    if directory_name == "ZeroJudge":
+    if directory_name == "ZeroJudge" and not has_problem_notes:
         letters = sorted({entry["letter"] for entry in entries})
         overview.extend(
             [

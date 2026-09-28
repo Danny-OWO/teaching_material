@@ -16,7 +16,7 @@ complexity:
 
 對每個查詢上限 `query`，求能從 `nums` 選出的最長 subsequence，使總和不超過該上限。
 
-## 你的解法骨架
+## 解法骨架
 
 ```text
 排序 nums → 建立前綴和 → 每筆 query 用 upper_bound
@@ -60,13 +60,12 @@ prefix:  [1, 3, 7, 12]
 
 因此最後一個不超過 `query` 的前綴長度，就是最佳答案。
 
-## 你的程式碼值得注意的地方
+## 實作重點
 
 - `upper_bound(prefix.begin(), prefix.end(), need)` 使用正確。若改成 `lower_bound`，當前綴和剛好等於 query 時會少算一個。
-- 你額外建立 `prefix`，讓每筆查詢降到 $O(\log n)$；這比每次重新累加乾淨得多。
+- 額外建立 `prefix`，能讓每筆查詢降到 $O(\log n)$；這比每次重新累加乾淨得多。
 - 依題目限制，最大總和為 $10^9$，`int temp` 仍放得下。但若把這個模板搬去更大的限制，應優先改成 `long long`，不要讓 AC 帶來虛假的安全感。
 
 ## 常見誤判
 
 `subsequence` 不等於 `subarray`。本題可以刪掉任意元素，因此排序後分析選哪些值是合理的；如果題目要求連續子陣列，排序會直接毀掉結構。
-
