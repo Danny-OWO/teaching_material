@@ -46,6 +46,7 @@ extra_css:
 extra_javascript:
   - assets/javascripts/background-video.js
   - assets/javascripts/source-filter.js?v=alphabet-index-1
+  - assets/javascripts/algorithm-visualizer.js?v=1
   - assets/javascripts/mathjax.js
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
 
@@ -68,6 +69,7 @@ markdown_extensions:
 
 nav:
   - 首頁: index.md
+  - 演算法題庫: 演算法題庫/index.md
   - APCS 課程: APCS/index.md
   - CodeCat: codecat/index.md
   - CSES Problem Set: CSES_problem_set/index.md

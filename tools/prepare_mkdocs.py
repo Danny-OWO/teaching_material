@@ -7,6 +7,8 @@ import re
 import shutil
 from urllib.parse import quote
 
+import yaml
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DESTINATION = ROOT / ".mkdocs-docs"
@@ -25,7 +27,16 @@ DISPLAY_NAMES = {
     "leetcode": "LeetCode",
     "TQC python": "TQC Python",
     "ZeroJudge": "ZeroJudge 題解",
+    "演算法題庫": "演算法題庫",
 }
+
+DIFFICULTY_LABELS = {
+    "easy": "簡單",
+    "medium": "中等",
+    "hard": "困難",
+}
+
+DIFFICULTY_ORDER = {"easy": 1, "medium": 2, "hard": 3}
 
 
 def material_directories() -> list[Path]:
@@ -103,6 +114,9 @@ def copy_published_files(source: Path, destination: Path) -> None:
     for path in source.rglob("*"):
         if not path.is_file() or path.suffix.lower() not in PUBLISHED_SUFFIXES:
             continue
+        if path.name == "problem.md":
+            # Sidecar content is merged into the generated problem page below.
+            continue
         target = destination / path.relative_to(source)
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(path, target)
@@ -119,6 +133,49 @@ def markdown_title(path: Path) -> str:
     text = path.read_text(encoding="utf-8", errors="replace")
     heading = re.search(r"(?m)^#\s+(.+?)\s*$", text)
     return heading.group(1) if heading else path.stem
+
+
+def read_frontmatter(path: Path) -> tuple[dict, str]:
+    """Read optional YAML frontmatter and return it separately from Markdown."""
+    text = path.read_text(encoding="utf-8", errors="replace")
+    match = re.match(r"\A---\s*\n(.*?)\n---\s*\n?", text, flags=re.DOTALL)
+    if not match:
+        return {}, text
+    metadata = yaml.safe_load(match.group(1)) or {}
+    if not isinstance(metadata, dict):
+        raise ValueError(f"Frontmatter in {path} must be a mapping")
+    return metadata, text[match.end():]
+
+
+def problem_metadata(directory: Path) -> tuple[dict, str] | None:
+    note = directory / "problem.md"
+    if not note.exists():
+        return None
+    metadata, body = read_frontmatter(note)
+    required = {"title", "difficulty", "topics", "patterns"}
+    missing = sorted(required - metadata.keys())
+    if missing:
+        raise ValueError(f"{note} is missing required metadata: {', '.join(missing)}")
+    difficulty = str(metadata["difficulty"]).lower()
+    if difficulty not in DIFFICULTY_LABELS:
+        raise ValueError(f"{note} has invalid difficulty: {difficulty}")
+    metadata["difficulty"] = difficulty
+    for key in ("topics", "patterns", "techniques", "prerequisites", "pitfalls"):
+        value = metadata.get(key, [])
+        metadata[key] = value if isinstance(value, list) else [value]
+    return metadata, body
+
+
+def badges(values: list[str], css_class: str = "problem-tag") -> str:
+    return "".join(
+        f'<span class="{css_class}">{html.escape(str(value))}</span>' for value in values
+    )
+
+
+def problem_summary(metadata: dict) -> str:
+    source = str(metadata.get("source", ""))
+    problem_id = str(metadata.get("problemId", ""))
+    return " · ".join(part for part in (source, problem_id) if part)
 
 
 def write_source_index(directory_name: str, display_name: str | None = None) -> None:
@@ -138,15 +195,55 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
     for source_file in source_files:
         groups.setdefault(source_file.parent, []).append(source_file)
 
+    problem_notes = {
+        directory: metadata
+        for directory in groups
+        if (metadata := problem_metadata(directory)) is not None
+    }
+    has_problem_notes = bool(problem_notes)
+    available_topics = sorted(
+        {
+            str(topic)
+            for metadata, _ in problem_notes.values()
+            for topic in metadata["topics"]
+        },
+        key=str.lower,
+    )
+
     overview: list[str] = [
         f"# {display_name} {'教材與程式' if markdown_files else '程式'}索引\n\n",
-        "選擇教材、題目或章節，即可閱讀內容及原始程式碼。\n\n",
+        (
+            "用關鍵字、難度與主題交叉篩選。五題不是五份孤立的答案，而是一條從基本資料結構走到答案二分的學習路徑。\n\n"
+            if has_problem_notes
+            else "選擇教材、題目或章節，即可閱讀內容及原始程式碼。\n\n"
+        ),
         '<label class="source-search">\n',
         '  <span>搜尋內容</span>\n',
-        '  <input type="search" placeholder="輸入章節、題號或檔名" autocomplete="off">\n',
+        '  <input type="search" placeholder="輸入題名、技巧或標籤" autocomplete="off">\n',
         '</label>\n\n',
-        '<p class="source-count" aria-live="polite"></p>\n\n',
     ]
+
+    if has_problem_notes:
+        overview.extend(
+            [
+                '<div class="problem-filters" data-problem-filters>\n',
+                '  <label>難度<select data-problem-difficulty><option value="all">全部難度</option><option value="easy">簡單</option><option value="medium">中等</option><option value="hard">困難</option></select></label>\n',
+                '  <label>主題<select data-problem-topic><option value="all">全部主題</option>\n',
+            ]
+        )
+        for topic in available_topics:
+            escaped_topic = html.escape(topic, quote=True)
+            overview.append(f'    <option value="{escaped_topic}">{html.escape(topic)}</option>\n')
+        overview.extend(
+            [
+                '  </select></label>\n',
+                '  <label>排序<select data-problem-sort><option value="route">學習順序</option><option value="difficulty">難度</option><option value="title">題名</option></select></label>\n',
+                '  <button type="button" data-problem-reset>清除條件</button>\n',
+                '</div>\n\n',
+            ]
+        )
+
+    overview.append('<p class="source-count" aria-live="polite"></p>\n\n')
 
     if markdown_files:
         overview.extend(["## 教材\n\n", '<div class="source-index lesson-index">\n'])
@@ -166,14 +263,39 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
     entries: list[dict[str, str]] = []
     for source_directory in groups:
         relative_directory = source_directory.relative_to(source_root)
-        label = "根目錄" if relative_directory == Path(".") else source_page_title(groups[source_directory][0], source_root)
+        note = problem_notes.get(source_directory)
+        metadata = note[0] if note else {}
+        fallback_label = "根目錄" if relative_directory == Path(".") else source_page_title(groups[source_directory][0], source_root)
+        label = str(metadata.get("title", fallback_label))
         target = "_root/" if relative_directory == Path(".") else f"{relative_directory.as_posix()}/"
         languages = sorted(
             {"C++" if path.suffix.lower() == ".cpp" else "Python" for path in groups[source_directory]}
         )
         language_badges = "".join(f"<span>{html.escape(language)}</span>" for language in languages)
-        search_text = html.escape(f"{label} {' '.join(languages)}".lower(), quote=True)
+        searchable_metadata = " ".join(
+            str(value)
+            for key in ("topics", "patterns", "techniques", "pitfalls")
+            for value in metadata.get(key, [])
+        )
+        search_text = html.escape(
+            f"{label} {' '.join(languages)} {problem_summary(metadata)} {searchable_metadata}".lower(),
+            quote=True,
+        )
         first_character = label[0].upper() if label and label[0].isalpha() else "#"
+        topics = " ".join(str(topic).lower() for topic in metadata.get("topics", []))
+        difficulty = str(metadata.get("difficulty", ""))
+        route_order = int(metadata.get("order", 999))
+        details = ""
+        if metadata:
+            difficulty_label = DIFFICULTY_LABELS[difficulty]
+            summary = problem_summary(metadata)
+            details = (
+                f'<span class="problem-card__eyebrow">{html.escape(summary)}</span>'
+                f'<span class="problem-card__badges">'
+                f'<span class="difficulty difficulty--{difficulty}">{difficulty_label}</span>'
+                f'{badges(metadata["topics"][:3])}</span>'
+                f'<span class="problem-card__pattern">{html.escape(" · ".join(str(item) for item in metadata["patterns"]))}</span>'
+            )
         entries.append(
             {
                 "label": html.escape(label),
@@ -181,6 +303,12 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
                 "languages": language_badges,
                 "search": search_text,
                 "letter": first_character,
+                "topics": html.escape(topics, quote=True),
+                "difficulty": html.escape(difficulty, quote=True),
+                "difficulty_order": str(DIFFICULTY_ORDER.get(difficulty, 99)),
+                "route_order": str(route_order),
+                "sort_title": html.escape(label.lower(), quote=True),
+                "details": details,
             }
         )
 
@@ -219,13 +347,23 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
             overview.extend(["    </div>\n", "  </section>\n"])
         overview.append("</div>\n\n")
     else:
-        overview.append('<div class="source-index">\n')
+        index_class = "source-index problem-index" if has_problem_notes else "source-index"
+        overview.append(f'<div class="{index_class}" data-problem-index>\n')
         for entry in entries:
+            data_attributes = ""
+            if has_problem_notes:
+                data_attributes = (
+                    f' data-problem-topic="{entry["topics"]}"'
+                    f' data-problem-difficulty="{entry["difficulty"]}"'
+                    f' data-problem-difficulty-order="{entry["difficulty_order"]}"'
+                    f' data-problem-route-order="{entry["route_order"]}"'
+                    f' data-problem-title="{entry["sort_title"]}"'
+                )
             overview.extend(
                 [
-                    f'  <a class="source-card" href="{entry["target"]}" data-source-search="{entry["search"]}">\n',
+                    f'  <a class="source-card" href="{entry["target"]}" data-source-search="{entry["search"]}"{data_attributes}>\n',
                     f'    <strong>{entry["label"]}</strong>\n',
-                    f'    <span class="source-languages">{entry["languages"]}</span>\n',
+                    (f'    {entry["details"]}\n' if entry["details"] else f'    <span class="source-languages">{entry["languages"]}</span>\n'),
                     "  </a>\n",
                 ]
             )
@@ -240,9 +378,28 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
         is_root = relative_directory == Path(".")
         page_directory = destination_root / ("_root" if is_root else relative_directory)
         page_directory.mkdir(parents=True, exist_ok=True)
-        title = "根目錄" if is_root else source_page_title(files[0], source_root)
+        note = problem_notes.get(source_directory)
+        metadata, lesson_body = note if note else ({}, "")
+        title = str(metadata.get("title", "根目錄" if is_root else source_page_title(files[0], source_root)))
         back_link = "../index.md" if is_root else "../" * len(relative_directory.parts) + "index.md"
         page = [f"# {title}\n\n", f"[← 回到程式索引]({back_link})\n\n"]
+        if metadata:
+            difficulty = metadata["difficulty"]
+            complexity = metadata.get("complexity", {})
+            complexity_items = "".join(
+                f'<span><b>{html.escape(str(key))}</b> {html.escape(str(value))}</span>'
+                for key, value in complexity.items()
+            ) if isinstance(complexity, dict) else ""
+            page.extend(
+                [
+                    '<div class="problem-meta">\n',
+                    f'  <div class="problem-meta__top"><span>{html.escape(problem_summary(metadata))}</span><span class="difficulty difficulty--{difficulty}">{DIFFICULTY_LABELS[difficulty]}</span></div>\n',
+                    f'  <div class="problem-meta__tags">{badges(metadata["topics"])}{badges(metadata["patterns"], "problem-tag problem-tag--pattern")}</div>\n',
+                    (f'  <div class="problem-meta__complexity">{complexity_items}</div>\n' if complexity_items else ""),
+                    '</div>\n\n',
+                ]
+            )
+            page.append(lesson_body.rstrip() + "\n\n")
         image_files = sorted(
             (
                 path
@@ -410,8 +567,10 @@ def write_generated_config() -> None:
         else:
             for directory in source_directories:
                 relative = directory.relative_to(material_directory).as_posix()
+                note = problem_metadata(directory)
+                item_title = str(note[0]["title"]) if note else relative
                 nav.append(
-                    f"      - {json.dumps(relative, ensure_ascii=False)}: "
+                    f"      - {json.dumps(item_title, ensure_ascii=False)}: "
                     f"{json.dumps(f'{directory_name}/{relative}/index.md', ensure_ascii=False)}"
                 )
 

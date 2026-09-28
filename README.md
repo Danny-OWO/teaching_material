@@ -19,6 +19,10 @@
 ## 從這裡開始
 
 <div class="home-links">
+  <a href="%E6%BC%94%E7%AE%97%E6%B3%95%E9%A1%8C%E5%BA%AB/">
+    <strong>演算法題庫</strong>
+    <span>從簡單到困難，以標籤、模式與動畫整理五道示範題。</span>
+  </a>
   <a href="APCS/APCS考試內容/">
     <strong>APCS 課程</strong>
     <span>資料結構、演算法與 APCS 準備筆記。</span>
