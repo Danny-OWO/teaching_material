@@ -186,6 +186,95 @@ body::before {
   padding: 0.5rem 0;
 }
 
+/* Binary-search lesson: keep algorithm roles visually stable across each step. */
+.md-typeset .binary-role,
+.md-typeset .binary-update {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.08rem 0.42rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-family: var(--md-code-font);
+  font-size: 0.84em;
+  font-weight: 600;
+  line-height: 1.55;
+  white-space: nowrap;
+}
+
+.md-typeset .binary-role--left,
+.md-typeset .binary-update--left {
+  color: #79c8ff;
+  background: rgba(54, 153, 222, 0.12);
+}
+
+.md-typeset .binary-role--middle {
+  color: #c5a3ff;
+  background: rgba(151, 101, 225, 0.13);
+}
+
+.md-typeset .binary-role--right,
+.md-typeset .binary-update--right {
+  color: #ffbd72;
+  background: rgba(230, 143, 54, 0.12);
+}
+
+.md-typeset .binary-role--target {
+  color: #83dda2;
+  background: rgba(65, 180, 105, 0.12);
+}
+
+.md-typeset .binary-search-legend {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 1rem 0 0.65rem;
+  padding: 0.9rem;
+  background: rgba(8, 14, 22, 0.66);
+  border: 1px solid #2e3d4c;
+  border-radius: 0.75rem;
+}
+
+.md-typeset .binary-search-legend ul {
+  display: contents;
+}
+
+.md-typeset .binary-search-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  list-style: none;
+}
+
+.md-typeset .binary-state {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0.9rem 0;
+  padding: 0.75rem;
+  background: linear-gradient(90deg, rgba(54, 153, 222, 0.08), rgba(151, 101, 225, 0.08), rgba(230, 143, 54, 0.08));
+  border: 1px solid #344454;
+  border-radius: 0.7rem;
+}
+
+.md-typeset .binary-state .binary-role {
+  justify-content: center;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.45rem;
+}
+
+.md-typeset .binary-decisions {
+  margin: 0.85rem 0;
+  padding: 0.75rem 0.9rem;
+  background: rgba(8, 14, 22, 0.62);
+  border-left: 0.2rem solid #9a77dc;
+  border-radius: 0.25rem 0.65rem 0.65rem 0.25rem;
+}
+
+.md-typeset .binary-decisions li + li {
+  margin-top: 0.45rem;
+}
+
 /* Responsive link cards generated from the existing ZeroJudge lists. */
 .md-typeset .problem-list ol {
   display: grid;
@@ -571,5 +660,10 @@ body::before {
   .md-typeset .home-links {
     grid-template-columns: 1fr;
     text-align: left;
+  }
+
+  .md-typeset .binary-search-legend,
+  .md-typeset .binary-state {
+    grid-template-columns: 1fr;
   }
 }

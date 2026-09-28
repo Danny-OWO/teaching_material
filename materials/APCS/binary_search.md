@@ -63,16 +63,25 @@
 
 ## 3. 二分搜尋的條件
 
-天使可以很正確的把電話簿不斷地撕下沒有 Sam 的那一頁，正是因為：**那一本電話簿是排序過的**。
-二分搜尋法最重要的便是只能用在排序過的資料情況下，否則你無法很肯定的撕下另外一半。
+!!! warning "先檢查：資料必須有序"
+    天使能正確地把電話簿撕掉一半，是因為：**那一本電話簿已經排序過**。
+
+    二分搜尋只能用在**有序資料**上；否則比較完中間值後，我們無法確定該排除哪一半。
 
 ## 4. 二分搜尋法演示
 
 在實作二分搜尋法時，有以下三個重要位置。
 
-* left = 目前範圍的最左側
-* right = 目前範圍的最右側
-* middle = 目前範圍的中間
+<div class="binary-search-legend" markdown>
+
+- <span class="binary-role binary-role--left">L · left</span> 目前搜尋範圍的最左側
+- <span class="binary-role binary-role--middle">M · middle</span> 目前搜尋範圍的中間
+- <span class="binary-role binary-role--right">R · right</span> 目前搜尋範圍的最右側
+- <span class="binary-role binary-role--target">T · target</span> 我們想找到的目標
+
+</div>
+
+後面的顏色會固定代表同一個角色。顏色是路標，`L / M / R / T` 標籤才是它的名字。
 
 比如說：
 
@@ -80,57 +89,70 @@
 lst = [0, 1, 2, 3, 4, 5, ... , 99, 100]
 ```
 
-我們想要找到 `68` 的話：
+我們想要找到 <span class="binary-role binary-role--target">T · 68</span> 的話：
 
-```text
-left = 0 | right = 100 | middle = 50
-```
+<div class="binary-state">
+  <span class="binary-role binary-role--left">L · left = 0</span>
+  <span class="binary-role binary-role--middle">M · middle = 50</span>
+  <span class="binary-role binary-role--right">R · right = 100</span>
+</div>
 
 middle 算法：**$(0+100)/2 = 50$**
 
-由於 `lst[50] < 68`，代表 `68` 只可能出現在 middle 的右邊，因此我們需要往右邊繼續找。
+由於 `lst[50] < 68`，代表 `68` 只可能出現在 <span class="binary-role binary-role--middle">middle</span> 的右邊，因此往右找：<span class="binary-update binary-update--left">left = middle + 1</span>。
 
-```text
-left = 51 | right = 100 | middle = 75
-```
+<div class="binary-state">
+  <span class="binary-role binary-role--left">L · left = 51</span>
+  <span class="binary-role binary-role--middle">M · middle = 75</span>
+  <span class="binary-role binary-role--right">R · right = 100</span>
+</div>
 
 middle 算法：**$(51+100)/2 = 75$**
 
-由於 `lst[75] > 68`，代表 `68` 只可能出現在 middle 的左邊，因此我們需要往左邊繼續找。
+由於 `lst[75] > 68`，代表 `68` 只可能出現在 <span class="binary-role binary-role--middle">middle</span> 的左邊，因此往左找：<span class="binary-update binary-update--right">right = middle - 1</span>。
 
-```text
-left = 51 | right = 74 | middle = 62
-```
+<div class="binary-state">
+  <span class="binary-role binary-role--left">L · left = 51</span>
+  <span class="binary-role binary-role--middle">M · middle = 62</span>
+  <span class="binary-role binary-role--right">R · right = 74</span>
+</div>
 
 middle 算法：**$(51+74)/2 = 62.5$**
 
 因為 index 必須是整數，所以無條件捨去得到 `62`。
 
-由於 `lst[62] < 68`，我們需要往右邊繼續找。
+由於 `lst[62] < 68`，我們需要往右邊繼續找：<span class="binary-update binary-update--left">left = middle + 1</span>。
 
-```text
-left = 63 | right = 74 | middle = 68
-```
+<div class="binary-state">
+  <span class="binary-role binary-role--left">L · left = 63</span>
+  <span class="binary-role binary-role--middle">M · middle = 68</span>
+  <span class="binary-role binary-role--right">R · right = 74</span>
+</div>
 
 middle 算法：**$(63+74)/2 = 68.5$**
 
 無條件捨去得到 `68`。
 
-這時：
+這時 <span class="binary-role binary-role--middle">middle</span> 正好撞上 <span class="binary-role binary-role--target">target</span>：
 
 ```text
 lst[68] == 68
 ```
 
-成功找到 `68`！
+!!! success "找到答案"
+    `lst[middle] == target`，成功找到 `68`！
 
 ---
 
 所以我們可以發現，每次判斷完 `middle` 後：
 
-- 如果 `lst[middle] == target`：找到答案
-- 如果 `lst[middle] < target`：往右邊找，`left = middle + 1`
-- 如果 `lst[middle] > target`：往左邊找，`right = middle - 1`
+<div class="binary-decisions" markdown>
+
+- **相等** · `lst[middle] == target` → 找到答案
+- **中間值太小** · `lst[middle] < target` → 往右找，<span class="binary-update binary-update--left">left = middle + 1</span>
+- **中間值太大** · `lst[middle] > target` → 往左找，<span class="binary-update binary-update--right">right = middle - 1</span>
+
+</div>
 
 也就是說，每搜尋一次，我們都可以直接排除掉**大約一半的資料**。
 

@@ -41,7 +41,7 @@ plugins:
 
 extra_css:
   - https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&display=swap
-  - assets/stylesheets/extra.css?v=alphabet-index-1
+  - assets/stylesheets/extra.css?v=binary-search-roles-1
 
 extra_javascript:
   - assets/javascripts/background-video.js
