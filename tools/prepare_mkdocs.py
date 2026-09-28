@@ -27,7 +27,6 @@ DISPLAY_NAMES = {
     "leetcode": "LeetCode",
     "TQC python": "TQC Python",
     "ZeroJudge": "ZeroJudge 題解",
-    "演算法題庫": "演算法題庫",
 }
 
 DIFFICULTY_LABELS = {
@@ -178,6 +177,12 @@ def problem_summary(metadata: dict) -> str:
     return " · ".join(part for part in (source, problem_id) if part)
 
 
+def source_directory_sort_key(directory: Path, source_root: Path) -> tuple:
+    note = problem_metadata(directory)
+    order = int(note[0].get("order", 999)) if note else 999
+    return (order, directory.relative_to(source_root).as_posix().lower())
+
+
 def write_source_index(directory_name: str, display_name: str | None = None) -> None:
     """Create navigable lesson and source-code pages in the disposable build tree."""
     display_name = display_name or directory_name
@@ -311,6 +316,9 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
                 "details": details,
             }
         )
+
+    if has_problem_notes:
+        entries.sort(key=lambda entry: (int(entry["route_order"]), entry["sort_title"]))
 
     if directory_name == "ZeroJudge":
         letters = sorted({entry["letter"] for entry in entries})
@@ -547,7 +555,7 @@ def write_generated_config() -> None:
                 if directory.is_dir()
                 and any(path.suffix.lower() in SOURCE_SUFFIXES for path in directory.glob("*"))
             ),
-            key=lambda path: path.relative_to(material_directory).as_posix().lower(),
+            key=lambda path: source_directory_sort_key(path, material_directory),
         )
         index_label = "教材與程式索引" if markdown_files else ("程式索引" if source_files else "檔案索引")
         nav.append(f"      - {json.dumps(index_label, ensure_ascii=False)}: {json.dumps(f'{directory_name}/index.md', ensure_ascii=False)}")

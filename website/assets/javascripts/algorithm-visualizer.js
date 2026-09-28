@@ -1,97 +1,106 @@
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll("[data-binary-search]").forEach((root) => {
-    const values = (root.dataset.values ?? "")
-      .split(",")
-      .map((value) => Number(value.trim()))
-      .filter((value) => Number.isFinite(value));
-    const target = Number(root.dataset.target);
-    const cells = root.querySelector("[data-visualizer-cells]");
-    const message = root.querySelector("[data-visualizer-message]");
-    const stepLabel = root.querySelector("[data-visualizer-step]");
-    const nextButton = root.querySelector("[data-visualizer-next]");
-    const playButton = root.querySelector("[data-visualizer-play]");
-    const resetButton = root.querySelector("[data-visualizer-reset]");
-    let left = 0;
-    let right = values.length - 1;
-    let step = 0;
-    let done = false;
-    let timer = null;
+  document.querySelectorAll("[data-chalk-cycle]").forEach((root) => {
+    const values = (root.dataset.values ?? "").split(",").map(Number);
+    const initialChalk = Number(root.dataset.chalk);
+    const total = values.reduce((sum, value) => sum + value, 0);
+    const cells = root.querySelector("[data-chalk-cells]");
+    const message = root.querySelector("[data-chalk-message]");
+    const stepLabel = root.querySelector("[data-chalk-step]");
+    const nextButton = root.querySelector("[data-chalk-next]");
+    const resetButton = root.querySelector("[data-chalk-reset]");
+    let phase = "modulo";
+    let student = 0;
+    let remaining = initialChalk;
 
-    if (!cells || !message || values.length === 0 || !Number.isFinite(target)) return;
+    if (!cells || !message || values.some((value) => !Number.isFinite(value))) return;
 
-    const stop = () => {
-      if (timer) window.clearInterval(timer);
-      timer = null;
-      if (playButton) playButton.textContent = "自動播放";
-    };
-
-    const render = (explanation = `目標是 ${target}。先觀察 left、mid、right。`) => {
-      const middle = left <= right ? left + Math.floor((right - left) / 2) : -1;
+    const render = (explanation) => {
       cells.replaceChildren(
-        ...values.map((value, index) => {
+        ...values.map((need, index) => {
           const cell = document.createElement("div");
           cell.className = "visualizer-cell";
-          if (!done && (index < left || index > right)) cell.classList.add("is-discarded");
-          if (index === left && !done) cell.classList.add("is-left");
-          if (index === middle && !done) cell.classList.add("is-middle");
-          if (index === right && !done) cell.classList.add("is-right");
-          if (done && value === target) cell.classList.add("is-found");
-          cell.innerHTML = `<span>${value}</span><small>${index}</small>`;
+          if (phase !== "modulo" && index === student) cell.classList.add("is-middle");
+          if (phase === "done" && index === student) cell.classList.add("is-found");
+          cell.innerHTML = `<span>學生 ${index}</span><small>需要 ${need} 枝</small>`;
           return cell;
         })
       );
       message.textContent = explanation;
-      if (stepLabel) stepLabel.textContent = `Step ${step}`;
-      if (nextButton) nextButton.disabled = done;
+      stepLabel.textContent = phase === "modulo" ? "尚未取模" : `剩餘 ${remaining} 枝`;
+      nextButton.disabled = phase === "done";
     };
 
     const advance = () => {
-      if (done) return;
-      if (left > right) {
-        done = true;
-        stop();
-        render(`搜尋區間已經為空，${target} 不在陣列裡。`);
+      if (phase === "modulo") {
+        remaining %= total;
+        phase = "scan";
+        render(`${initialChalk} % ${total} = ${remaining}，完整週期已全部跳過。`);
         return;
       }
-
-      const middle = left + Math.floor((right - left) / 2);
-      step += 1;
-      if (values[middle] === target) {
-        done = true;
-        stop();
-        render(`a[${middle}] = ${target}，找到目標。`);
-      } else if (values[middle] < target) {
-        const oldMiddle = middle;
-        left = middle + 1;
-        render(`a[${oldMiddle}] = ${values[oldMiddle]} < ${target}，排除 mid 以及左半邊。`);
-      } else {
-        const oldMiddle = middle;
-        right = middle - 1;
-        render(`a[${oldMiddle}] = ${values[oldMiddle]} > ${target}，排除 mid 以及右半邊。`);
+      if (remaining < values[student]) {
+        phase = "done";
+        render(`剩下 ${remaining} 枝，小於學生 ${student} 需要的 ${values[student]} 枝；答案是 ${student}。`);
+        return;
       }
+      const used = values[student];
+      remaining -= used;
+      student = (student + 1) % values.length;
+      render(`上一位使用 ${used} 枝，接著檢查學生 ${student}。`);
     };
 
     const reset = () => {
-      stop();
-      left = 0;
-      right = values.length - 1;
-      step = 0;
-      done = false;
-      render();
+      phase = "modulo";
+      student = 0;
+      remaining = initialChalk;
+      render(`一輪共需要 ${total} 枝。先對 ${initialChalk} 取模，不必真的跑完整週期。`);
     };
 
-    nextButton?.addEventListener("click", advance);
+    nextButton.addEventListener("click", advance);
     resetButton?.addEventListener("click", reset);
-    playButton?.addEventListener("click", () => {
-      if (timer) {
-        stop();
-        return;
-      }
-      if (done) reset();
-      playButton.textContent = "暫停";
-      advance();
-      if (!done) timer = window.setInterval(advance, 1100);
-    });
     reset();
+  });
+
+  document.querySelectorAll("[data-prefix-query]").forEach((root) => {
+    const values = (root.dataset.values ?? "").split(",").map(Number).sort((a, b) => a - b);
+    const queries = (root.dataset.queries ?? "").split(",").map(Number);
+    const prefix = [];
+    values.reduce((sum, value) => {
+      const next = sum + value;
+      prefix.push(next);
+      return next;
+    }, 0);
+    const cells = root.querySelector("[data-prefix-cells]");
+    const message = root.querySelector("[data-prefix-message]");
+    const status = root.querySelector("[data-prefix-status]");
+    const controls = root.querySelector("[data-prefix-controls]");
+
+    if (!cells || !message || !controls || values.some((value) => !Number.isFinite(value))) return;
+
+    const showQuery = (query) => {
+      const count = prefix.filter((sum) => sum <= query).length;
+      cells.replaceChildren(
+        ...values.map((value, index) => {
+          const cell = document.createElement("div");
+          cell.className = "prefix-cell";
+          if (index < count) cell.classList.add("is-selected");
+          if (index === count && count < values.length) cell.classList.add("is-boundary");
+          cell.innerHTML = `<span>值 ${value}</span><small>prefix = ${prefix[index]}</small>`;
+          return cell;
+        })
+      );
+      status.textContent = `query = ${query}`;
+      message.textContent = `第一個大於 ${query} 的前綴位置是 ${count}，所以最多可選 ${count} 個元素。`;
+    };
+
+    controls.replaceChildren(
+      ...queries.map((query) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = `query = ${query}`;
+        button.addEventListener("click", () => showQuery(query));
+        return button;
+      })
+    );
+    showQuery(queries[0]);
   });
 });

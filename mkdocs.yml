@@ -69,7 +69,6 @@ markdown_extensions:
 
 nav:
   - 首頁: index.md
-  - 演算法題庫: 演算法題庫/index.md
   - APCS 課程: APCS/index.md
   - CodeCat: codecat/index.md
   - CSES Problem Set: CSES_problem_set/index.md
