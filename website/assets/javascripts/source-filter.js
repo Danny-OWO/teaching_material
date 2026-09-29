@@ -1,32 +1,39 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const search = document.querySelector(".source-search input");
-  const cards = [...document.querySelectorAll(".source-card")];
-  const count = document.querySelector(".source-count");
-  const empty = document.querySelector(".source-empty");
-  const letterButtons = [...document.querySelectorAll("[data-source-letter]")].filter(
+const initializeSourceFilter = () => {
+  const programCatalog = document.querySelector("[data-program-catalog]");
+  const root = programCatalog ?? document;
+  const search = root.querySelector(".source-search input");
+  const cards = [...root.querySelectorAll(".source-card")];
+  const count = root.querySelector(".source-count");
+  const empty = root.querySelector(".source-empty");
+  const letterButtons = [...root.querySelectorAll("[data-source-letter]")].filter(
     (element) => element.tagName === "BUTTON"
   );
-  const groups = [...document.querySelectorAll("[data-source-group]")];
-  const problemIndex = document.querySelector("[data-problem-index]");
-  const difficultySelect = document.querySelector("[data-problem-difficulty]");
-  const topicSelect = document.querySelector("[data-problem-topic]");
-  const sortSelect = document.querySelector("[data-problem-sort]");
-  const resetButton = document.querySelector("[data-problem-reset]");
-  const programSource = document.querySelector("[data-program-source]");
-  const programLanguage = document.querySelector("[data-program-language]");
-  const programReset = document.querySelector("[data-program-reset]");
-  const programTagButtons = [...document.querySelectorAll("[data-program-tag]")];
+  const groups = [...root.querySelectorAll("[data-source-group]")];
+  const problemIndex = root.querySelector("[data-problem-index]");
+  const difficultySelect = root.querySelector("[data-problem-difficulty]");
+  const topicSelect = root.querySelector("[data-problem-topic]");
+  const sortSelect = root.querySelector("[data-problem-sort]");
+  const resetButton = root.querySelector("[data-problem-reset]");
+  const programSource = root.querySelector("select[data-program-source]");
+  const programLanguage = root.querySelector("select[data-program-language]");
+  const programReset = root.querySelector("button[data-program-reset]");
+  const programSelection = root.querySelector("[data-program-selection]");
+  const programTagButtons = [...root.querySelectorAll("[data-program-tag]")];
   const selectedProgramTags = new Set();
   let selectedLetter = "all";
 
-  if (!search || cards.length === 0) return;
+  if (!search || cards.length === 0 || search.dataset.filterReady === "true") return;
+  search.dataset.filterReady = "true";
+
+  const normalize = (value) => value.normalize("NFKC").trim().toLocaleLowerCase("zh-Hant");
 
   const update = () => {
-    const query = search.value.trim().toLowerCase();
+    const queryTerms = normalize(search.value).split(/\s+/).filter(Boolean);
     let visible = 0;
 
     cards.forEach((card) => {
-      const matchesQuery = card.dataset.sourceSearch.includes(query);
+      const haystack = normalize(card.dataset.sourceSearch ?? "");
+      const matchesQuery = queryTerms.every((term) => haystack.includes(term));
       const matchesLetter =
         selectedLetter === "all" || card.dataset.sourceLetter === selectedLetter;
       const selectedDifficulty = difficultySelect?.value ?? "all";
@@ -68,8 +75,16 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     });
 
-    count.textContent = `顯示 ${visible} / ${cards.length} 個項目`;
-    empty.hidden = visible !== 0;
+    if (count) {
+      const noun = programCatalog ? "個程式" : "個項目";
+      count.textContent = `${visible} / ${cards.length} ${noun}`;
+    }
+    if (empty) empty.hidden = visible !== 0;
+    if (programSelection) {
+      programSelection.textContent = selectedProgramTags.size
+        ? `已選 ${selectedProgramTags.size} 個：${[...selectedProgramTags].join("、")}`
+        : "尚未選取標籤";
+    }
   };
 
   letterButtons.forEach((button) => {
@@ -98,9 +113,12 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         selectedProgramTags.add(tag);
       }
-      const active = selectedProgramTags.has(tag);
-      button.classList.toggle("is-active", active);
-      button.setAttribute("aria-pressed", String(active));
+      programTagButtons.forEach((candidate) => {
+        if (candidate.dataset.programTag !== tag) return;
+        const active = selectedProgramTags.has(tag);
+        candidate.classList.toggle("is-active", active);
+        candidate.setAttribute("aria-pressed", String(active));
+      });
       update();
     });
   });
@@ -123,4 +141,12 @@ document.addEventListener("DOMContentLoaded", () => {
     update();
   });
   update();
-});
+};
+
+if (typeof document$ !== "undefined") {
+  document$.subscribe(initializeSourceFilter);
+} else if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeSourceFilter);
+} else {
+  initializeSourceFilter();
+}

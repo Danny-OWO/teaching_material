@@ -651,13 +651,23 @@ def write_program_catalog() -> None:
     )
     sources = sorted({entry["source"] for entry in entries}, key=str.lower)
     languages = sorted({entry["language"] for entry in entries})
+    # Language already has a dedicated filter, and input-output is so broad that
+    # it adds noise rather than helping discovery. Keep the compact first row to
+    # genuinely useful algorithm tags; everything remains available below.
+    featured_tags = [
+        tag for tag in popular_tags
+        if tag not in {*languages, "input-output"}
+    ][:12]
+    more_tags = [tag for tag in popular_tags if tag not in featured_tags and tag not in languages]
 
     page = [
         "# 程式標籤搜尋\n\n",
-        "把所有平台與章節放進同一個索引。可輸入題名，也可點選標籤交叉篩選；標籤不是裝飾，是用來辨認解題模式的。\n\n",
+        "搜尋題名、檔名或解題技巧，再用來源、語言與標籤縮小範圍。多個關鍵字不必連在一起。\n\n",
+        '<div class="program-catalog" data-program-catalog>\n',
+        '<div class="program-toolbar">\n',
         '<label class="source-search program-search">\n',
-        '  <span>搜尋程式</span>\n',
-        '  <input type="search" placeholder="例如：binary-search、遞迴、c002" autocomplete="off">\n',
+        '  <span>關鍵字</span>\n',
+        '  <input type="search" placeholder="題名、檔名或技巧，例如 binary search" autocomplete="off" aria-label="搜尋程式">\n',
         '</label>\n\n',
         '<div class="problem-filters program-filters" data-program-filters>\n',
         '  <label>來源<select data-program-source><option value="all">全部來源</option>\n',
@@ -672,16 +682,29 @@ def write_program_catalog() -> None:
             '  </select></label>\n',
             '  <button type="button" data-program-reset>清除條件</button>\n',
             '</div>\n\n',
-            '<div class="tag-cloud" data-program-tag-cloud aria-label="用標籤篩選">\n',
+            '</div>\n\n',
+            '<section class="program-tags" aria-labelledby="program-tags-heading">\n',
+            '  <div class="program-tags__heading">\n',
+            '    <strong id="program-tags-heading">常用標籤</strong>\n',
+            '    <span data-program-selection>尚未選取標籤</span>\n',
+            '  </div>\n',
+            '<div class="tag-cloud tag-cloud--featured" data-program-tag-cloud aria-label="常用標籤篩選">\n',
         ]
     )
-    for tag in popular_tags:
+    for tag in featured_tags:
         count = sum(tag in entry["tags"] for entry in entries)
         page.append(
             f'  <button type="button" data-program-tag="{html.escape(tag, quote=True)}" aria-pressed="false">'
             f'{html.escape(tag)} <span>{count}</span></button>\n'
         )
-    page.extend(['</div>\n\n', '<p class="source-count" aria-live="polite"></p>\n\n', '<div class="source-index program-index" data-program-index>\n'])
+    page.extend(['</div>\n', '<details class="program-tag-drawer">\n', f'  <summary>瀏覽其他 {len(more_tags)} 個標籤</summary>\n', '  <div class="tag-cloud" aria-label="其他標籤篩選">\n'])
+    for tag in more_tags:
+        count = sum(tag in entry["tags"] for entry in entries)
+        page.append(
+            f'    <button type="button" data-program-tag="{html.escape(tag, quote=True)}" aria-pressed="false">'
+            f'{html.escape(tag)} <span>{count}</span></button>\n'
+        )
+    page.extend(['  </div>\n', '</details>\n', '</section>\n\n', '<div class="program-results-heading">\n', '  <strong>搜尋結果</strong>\n', '  <p class="source-count" aria-live="polite"></p>\n', '</div>\n\n', '<div class="source-index program-index" data-program-index>\n'])
     for entry in entries:
         tag_value = "|".join(entry["tags"])
         tag_markup = badges(entry["tags"][:6], "code-tag")
@@ -695,7 +718,7 @@ def write_program_catalog() -> None:
                 '  </a>\n',
             ]
         )
-    page.extend(['</div>\n\n', '<p class="source-empty" hidden>找不到符合條件的程式。試著少選一個標籤。</p>\n'])
+    page.extend(['</div>\n\n', '<p class="source-empty" hidden>找不到符合條件的程式。試著減少關鍵字或清除一個標籤。</p>\n', '</div>\n'])
     destination = DESTINATION / "programs"
     destination.mkdir(parents=True, exist_ok=True)
     (destination / "index.md").write_text("".join(page), encoding="utf-8")
