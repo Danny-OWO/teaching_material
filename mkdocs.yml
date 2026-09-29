@@ -42,11 +42,11 @@ plugins:
 
 extra_css:
   - https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&display=swap
-  - assets/stylesheets/extra.css?v=program-search-2
+  - assets/stylesheets/extra.css?v=program-search-3
 
 extra_javascript:
   - assets/javascripts/background-video.js
-  - assets/javascripts/source-filter.js?v=program-search-2
+  - assets/javascripts/source-filter.js?v=program-search-3
   - assets/javascripts/algorithm-visualizer.js?v=1
   - assets/javascripts/mathjax.js
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js

@@ -10,12 +10,13 @@ const initializeSourceFilter = () => {
   );
   const groups = [...root.querySelectorAll("[data-source-group]")];
   const problemIndex = root.querySelector("[data-problem-index]");
+  const programIndex = root.querySelector("[data-program-index]");
   const difficultySelect = root.querySelector("[data-problem-difficulty]");
   const topicSelect = root.querySelector("[data-problem-topic]");
   const sortSelect = root.querySelector("[data-problem-sort]");
   const resetButton = root.querySelector("[data-problem-reset]");
   const programSource = root.querySelector("select[data-program-source]");
-  const programLanguage = root.querySelector("select[data-program-language]");
+  const programDifficulty = root.querySelector("select[data-program-difficulty]");
   const programReset = root.querySelector("button[data-program-reset]");
   const programSelection = root.querySelector("[data-program-selection]");
   const programTagButtons = [...root.querySelectorAll("[data-program-tag]")];
@@ -43,18 +44,29 @@ const initializeSourceFilter = () => {
         selectedDifficulty === "all" || card.dataset.problemDifficulty === selectedDifficulty;
       const matchesTopic = selectedTopic === "all" || cardTopics.includes(selectedTopic);
       const selectedSource = programSource?.value ?? "all";
-      const selectedLanguage = programLanguage?.value ?? "all";
+      const selectedProgramDifficulty = programDifficulty?.value ?? "all";
       const programTags = (card.dataset.programTags ?? "").split("|").filter(Boolean);
       const matchesSource = selectedSource === "all" || card.dataset.programSource === selectedSource;
-      const matchesLanguage =
-        selectedLanguage === "all" || card.dataset.programLanguage === selectedLanguage;
+      const matchesProgramDifficulty = selectedProgramDifficulty === "all" ||
+        card.dataset.programDifficulty === selectedProgramDifficulty;
       const matchesProgramTags = [...selectedProgramTags].every((tag) => programTags.includes(tag));
       const matches =
         matchesQuery && matchesLetter && matchesDifficulty && matchesTopic &&
-        matchesSource && matchesLanguage && matchesProgramTags;
+        matchesSource && matchesProgramDifficulty && matchesProgramTags;
       card.hidden = !matches;
       if (matches) visible += 1;
     });
+
+    if (programIndex) {
+      const sortedCards = [...cards].sort((left, right) => {
+        const leftTitle = normalize(left.dataset.programTitle ?? "");
+        const rightTitle = normalize(right.dataset.programTitle ?? "");
+        const leftStarts = queryTerms.some((term) => leftTitle.startsWith(term));
+        const rightStarts = queryTerms.some((term) => rightTitle.startsWith(term));
+        return Number(rightStarts) - Number(leftStarts) || leftTitle.localeCompare(rightTitle, "zh-Hant");
+      });
+      sortedCards.forEach((card) => programIndex.append(card));
+    }
 
     if (problemIndex && sortSelect) {
       const sortKey = sortSelect.value;
@@ -76,7 +88,7 @@ const initializeSourceFilter = () => {
     });
 
     if (count) {
-      const noun = programCatalog ? "個程式" : "個項目";
+      const noun = programCatalog ? "題" : "個項目";
       count.textContent = `${visible} / ${cards.length} ${noun}`;
     }
     if (empty) empty.hidden = visible !== 0;
@@ -104,7 +116,7 @@ const initializeSourceFilter = () => {
   topicSelect?.addEventListener("change", update);
   sortSelect?.addEventListener("change", update);
   programSource?.addEventListener("change", update);
-  programLanguage?.addEventListener("change", update);
+  programDifficulty?.addEventListener("change", update);
   programTagButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const tag = button.dataset.programTag;
@@ -132,7 +144,7 @@ const initializeSourceFilter = () => {
   programReset?.addEventListener("click", () => {
     search.value = "";
     if (programSource) programSource.value = "all";
-    if (programLanguage) programLanguage.value = "all";
+    if (programDifficulty) programDifficulty.value = "all";
     selectedProgramTags.clear();
     programTagButtons.forEach((button) => {
       button.classList.remove("is-active");

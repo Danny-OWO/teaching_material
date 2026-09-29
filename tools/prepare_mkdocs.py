@@ -189,7 +189,9 @@ def problem_metadata(directory: Path) -> tuple[dict, str] | None:
 
 def badges(values: list[str], css_class: str = "problem-tag") -> str:
     return "".join(
-        f'<span class="{css_class}">{html.escape(str(value))}</span>' for value in values
+        f'<span class="{css_class} tag-tone-{sum(map(ord, str(value).lower())) % 6}">'
+        f'{html.escape(str(value))}</span>'
+        for value in values
     )
 
 
@@ -607,41 +609,60 @@ def write_file_index(directory_name: str) -> None:
 
 def write_program_catalog() -> None:
     """Build one cross-source catalogue where tags are first-class filters."""
-    entries: list[dict] = []
-    all_tags: set[str] = set()
+    grouped_entries: dict[tuple[str, str, str], dict] = {}
     for material_directory in material_directories():
         source_files = sorted(
             (path for path in material_directory.rglob("*") if path.suffix.lower() in SOURCE_SUFFIXES),
             key=lambda path: path.relative_to(material_directory).as_posix().lower(),
         )
+        stems_by_parent: dict[Path, set[str]] = {}
+        for path in source_files:
+            stems_by_parent.setdefault(path.parent, set()).add(path.stem.lower())
         for source_file in source_files:
             relative_parent = source_file.parent.relative_to(material_directory)
             note = problem_metadata(source_file.parent)
             metadata = note[0] if note else {}
             fallback_title = (
-                source_file.stem if relative_parent == Path(".") else relative_parent.as_posix()
+                relative_parent.name
+                if relative_parent != Path(".") and len(stems_by_parent[source_file.parent]) == 1
+                else source_file.stem
             )
             title = str(metadata.get("title", fallback_title))
             tags, _ = inferred_code_notes(source_file, metadata)
-            all_tags.update(tags)
+            language = LANGUAGE_NAMES[source_file.suffix.lower()]
+            algorithm_tags = [tag for tag in tags if tag not in LANGUAGE_NAMES.values()]
             page_directory = "_root" if relative_parent == Path(".") else relative_parent.as_posix()
             href = f'../{quote(material_directory.name)}/{quote(page_directory)}/#{source_anchor(source_file)}'
-            search_text = " ".join(
-                [title, source_file.name, display_name(material_directory.name), *tags]
-            ).lower()
-            entries.append(
-                {
+            # Curated problem metadata identifies all implementations as one
+            # problem. For loose exercise folders, the filename stem is the
+            # safest cross-language identity.
+            identity = title if metadata else source_file.stem.lower()
+            key = (material_directory.name, page_directory, identity)
+            if key not in grouped_entries:
+                grouped_entries[key] = {
                     "title": title,
-                    "filename": source_file.name,
                     "source": display_name(material_directory.name),
-                    "language": LANGUAGE_NAMES[source_file.suffix.lower()],
-                    "tags": tags,
+                    "languages": [],
+                    "filenames": [],
+                    "tags": [],
+                    "difficulty": str(metadata.get("difficulty", "unrated")),
                     "href": href,
-                    "search": search_text,
                 }
-            )
+            entry = grouped_entries[key]
+            entry["languages"].append(language)
+            entry["filenames"].append(source_file.name)
+            entry["tags"].extend(algorithm_tags)
 
-    entries.sort(key=lambda item: (item["source"].lower(), item["title"].lower(), item["filename"].lower()))
+    entries = list(grouped_entries.values())
+    for entry in entries:
+        entry["languages"] = sorted(set(entry["languages"]))
+        entry["tags"] = list(dict.fromkeys(entry["tags"]))
+        entry["search"] = " ".join(
+            [entry["title"], entry["source"], *entry["filenames"], *entry["languages"], *entry["tags"]]
+        ).lower()
+
+    entries.sort(key=lambda item: (item["source"].lower(), item["title"].lower()))
+    all_tags = {tag for entry in entries for tag in entry["tags"]}
     popular_tags = sorted(
         all_tags,
         key=lambda tag: (
@@ -650,19 +671,17 @@ def write_program_catalog() -> None:
         ),
     )
     sources = sorted({entry["source"] for entry in entries}, key=str.lower)
-    languages = sorted({entry["language"] for entry in entries})
-    # Language already has a dedicated filter, and input-output is so broad that
-    # it adds noise rather than helping discovery. Keep the compact first row to
-    # genuinely useful algorithm tags; everything remains available below.
+    # input-output is nearly universal and adds noise rather than helping
+    # discovery. Keep the first row to genuinely useful algorithm tags.
     featured_tags = [
         tag for tag in popular_tags
-        if tag not in {*languages, "input-output"}
+        if tag != "input-output"
     ][:12]
-    more_tags = [tag for tag in popular_tags if tag not in featured_tags and tag not in languages]
+    more_tags = [tag for tag in popular_tags if tag not in featured_tags]
 
     page = [
         "# 程式標籤搜尋\n\n",
-        "搜尋題名、檔名或解題技巧，再用來源、語言與標籤縮小範圍。多個關鍵字不必連在一起。\n\n",
+        "搜尋題名、檔名或解題技巧，再用來源、難度與標籤縮小範圍。C++ 與 Python 解法合併為同一題。\n\n",
         '<div class="program-catalog" data-program-catalog>\n',
         '<div class="program-toolbar">\n',
         '<label class="source-search program-search">\n',
@@ -674,9 +693,12 @@ def write_program_catalog() -> None:
     ]
     for source in sources:
         page.append(f'    <option value="{html.escape(source, quote=True)}">{html.escape(source)}</option>\n')
-    page.extend(['  </select></label>\n', '  <label>語言<select data-program-language><option value="all">全部語言</option>\n'])
-    for language in languages:
-        page.append(f'    <option value="{html.escape(language, quote=True)}">{html.escape(language)}</option>\n')
+    page.extend(['  </select></label>\n', '  <label>難度<select data-program-difficulty><option value="all">全部難度</option>\n'])
+    for difficulty, label in DIFFICULTY_LABELS.items():
+        count = sum(entry["difficulty"] == difficulty for entry in entries)
+        page.append(f'    <option value="{difficulty}">{label}（{count}）</option>\n')
+    unrated_count = sum(entry["difficulty"] == "unrated" for entry in entries)
+    page.append(f'    <option value="unrated">未標示（{unrated_count}）</option>\n')
     page.extend(
         [
             '  </select></label>\n',
@@ -693,27 +715,32 @@ def write_program_catalog() -> None:
     )
     for tag in featured_tags:
         count = sum(tag in entry["tags"] for entry in entries)
+        tone = sum(map(ord, tag.lower())) % 6
         page.append(
-            f'  <button type="button" data-program-tag="{html.escape(tag, quote=True)}" aria-pressed="false">'
+            f'  <button class="tag-tone-{tone}" type="button" data-program-tag="{html.escape(tag, quote=True)}" aria-pressed="false">'
             f'{html.escape(tag)} <span>{count}</span></button>\n'
         )
     page.extend(['</div>\n', '<details class="program-tag-drawer">\n', f'  <summary>瀏覽其他 {len(more_tags)} 個標籤</summary>\n', '  <div class="tag-cloud" aria-label="其他標籤篩選">\n'])
     for tag in more_tags:
         count = sum(tag in entry["tags"] for entry in entries)
+        tone = sum(map(ord, tag.lower())) % 6
         page.append(
-            f'    <button type="button" data-program-tag="{html.escape(tag, quote=True)}" aria-pressed="false">'
+            f'    <button class="tag-tone-{tone}" type="button" data-program-tag="{html.escape(tag, quote=True)}" aria-pressed="false">'
             f'{html.escape(tag)} <span>{count}</span></button>\n'
         )
     page.extend(['  </div>\n', '</details>\n', '</section>\n\n', '<div class="program-results-heading">\n', '  <strong>搜尋結果</strong>\n', '  <p class="source-count" aria-live="polite"></p>\n', '</div>\n\n', '<div class="source-index program-index" data-program-index>\n'])
     for entry in entries:
         tag_value = "|".join(entry["tags"])
-        tag_markup = badges(entry["tags"][:6], "code-tag")
+        tag_markup = badges(entry["tags"][:4], "code-tag")
+        language_markup = " / ".join(entry["languages"])
+        difficulty = entry["difficulty"]
+        difficulty_label = DIFFICULTY_LABELS.get(difficulty, "未標示")
         page.extend(
             [
-                f'  <a class="source-card program-card" href="{entry["href"]}" data-source-search="{html.escape(entry["search"], quote=True)}" data-program-source="{html.escape(entry["source"], quote=True)}" data-program-language="{html.escape(entry["language"], quote=True)}" data-program-tags="{html.escape(tag_value, quote=True)}">\n',
-                f'    <span class="problem-card__eyebrow">{html.escape(entry["source"])} · {html.escape(entry["language"])}</span>\n',
+                f'  <a class="source-card program-card" href="{entry["href"]}" data-source-search="{html.escape(entry["search"], quote=True)}" data-program-title="{html.escape(entry["title"].lower(), quote=True)}" data-program-source="{html.escape(entry["source"], quote=True)}" data-program-difficulty="{difficulty}" data-program-tags="{html.escape(tag_value, quote=True)}">\n',
+                f'    <span class="problem-card__eyebrow">{html.escape(entry["source"])} · {html.escape(language_markup)}</span>\n',
                 f'    <strong>{html.escape(entry["title"])}</strong>\n',
-                f'    <span class="lesson-filename">{html.escape(entry["filename"])}</span>\n',
+                f'    <span class="program-card__difficulty difficulty--{difficulty}">{difficulty_label}</span>\n',
                 f'    <span class="program-card__tags">{tag_markup}</span>\n',
                 '  </a>\n',
             ]
