@@ -37,6 +37,28 @@ DIFFICULTY_LABELS = {
 
 DIFFICULTY_ORDER = {"easy": 1, "medium": 2, "hard": 3}
 
+LANGUAGE_NAMES = {".cpp": "C++", ".py": "Python"}
+
+# The catalogue and the per-file explanation use the same vocabulary.  Keeping
+# this rule based (instead of storing a second hand-written database) means a
+# newly added solution is searchable on the very next deployment.
+CODE_SIGNALS = [
+    ("input-output", "輸入輸出", r"\b(?:cin|cout|input|print)\b", "從標準輸入取得資料，並把答案寫到標準輸出。"),
+    ("loop", "迴圈", r"\b(?:for|while)\s*\(?", "使用迴圈重複處理資料；閱讀時要特別確認邊界與終止條件。"),
+    ("condition", "條件判斷", r"\bif\s*\(?", "用條件分支處理不同情況，分支條件就是這份程式的決策核心。"),
+    ("recursion", "遞迴", r"\b(?:dfs|recur\w*)\s*\(", "包含遞迴呼叫；請先找 base case，再追蹤每次呼叫如何縮小問題。"),
+    ("sorting", "排序", r"\b(?:sort\s*\(|sorted\s*\(|\.sort\s*\()", "先排序資料，通常是為了建立單調性或讓後續搜尋更容易。"),
+    ("binary-search", "二分搜尋", r"\b(?:lower_bound|upper_bound|binary_search|bisect)\b", "利用已排序資料做二分搜尋，把線性查找縮短為對數級。"),
+    ("prefix-sum", "前綴和", r"\b(?:prefix|prefix_sum|presum|pre_sum)\b", "預先累積前綴資訊，換取之後更快的區間或查詢計算。"),
+    ("dynamic-programming", "動態規劃", r"\b(?:dp|memo)\s*[\[=]", "保存子問題答案以避免重複計算；狀態定義與轉移式應一起閱讀。"),
+    ("array-list", "陣列／串列", r"\b(?:vector\s*<|list\s*\(|\w+\s*\[[^\]]+\])", "以陣列或串列保存一組資料，索引範圍是最常見的出錯點。"),
+    ("map-dictionary", "映射表", r"\b(?:map\s*<|unordered_map\s*<|dict\s*\(|defaultdict)\b", "用 key 對應 value，適合計數、查表或記錄狀態。"),
+    ("set", "集合", r"\b(?:set\s*<|unordered_set\s*<|set\s*\()", "用集合維護不重複元素或加速成員查詢。"),
+    ("stack-queue", "堆疊／佇列", r"\b(?:stack|queue|deque)\s*[<(]", "使用堆疊或佇列控制資料的處理順序。"),
+    ("string", "字串", r"\b(?:string\s+|str\s*\(|getline\s*\()", "包含字串處理；留意空白、換行與索引切片的邊界。"),
+    ("formatting", "格式化輸出", r"(?:setprecision|setw|\{:[^}]+\}|\.format\s*\(|f['\"])", "輸出格式是答案的一部分，寬度、對齊與小數位數都不能靠感覺。"),
+]
+
 
 def material_directories() -> list[Path]:
     """Return every non-hidden top-level material directory."""
@@ -168,6 +190,68 @@ def problem_metadata(directory: Path) -> tuple[dict, str] | None:
 def badges(values: list[str], css_class: str = "problem-tag") -> str:
     return "".join(
         f'<span class="{css_class}">{html.escape(str(value))}</span>' for value in values
+    )
+
+
+def source_anchor(path: Path) -> str:
+    """Return a stable HTML anchor for a source file."""
+    return "source-" + re.sub(r"[^a-z0-9]+", "-", path.name.lower()).strip("-")
+
+
+def inferred_code_notes(path: Path, metadata: dict | None = None) -> tuple[list[str], list[str]]:
+    """Infer conservative teaching notes from syntax that is actually present."""
+    text = path.read_text(encoding="utf-8", errors="replace")
+    metadata = metadata or {}
+    tags = [LANGUAGE_NAMES[path.suffix.lower()]]
+    notes: list[str] = []
+    for slug, label, pattern, explanation in CODE_SIGNALS:
+        if re.search(pattern, text, flags=re.IGNORECASE):
+            tags.append(slug)
+            notes.append(explanation)
+
+    # Detect direct self-recursion without mistaking `return helper(...)` for a
+    # recursive call.  A declared function name must occur again in its body.
+    function_names = (
+        re.findall(r"(?m)^\s*def\s+([A-Za-z_]\w*)\s*\(", text)
+        if path.suffix.lower() == ".py"
+        else re.findall(r"(?m)^\s*(?:[\w:<>,*&]+\s+)+([A-Za-z_]\w*)\s*\([^;]*\)\s*\{", text)
+    )
+    if any(len(re.findall(rf"\b{re.escape(name)}\s*\(", text)) > 1 for name in function_names):
+        if "recursion" not in tags:
+            tags.append("recursion")
+            notes.append("包含遞迴呼叫；請先找 base case，再追蹤每次呼叫如何縮小問題。")
+
+    # Curated problem metadata is more precise than lexical inference, so it is
+    # included in both the explanation and the global search catalogue.
+    for key in ("topics", "patterns", "techniques"):
+        tags.extend(str(value) for value in metadata.get(key, []))
+
+    if path.suffix.lower() == ".cpp" and "#include <bits/stdc++.h>" in text:
+        notes.append("`bits/stdc++.h` 在競賽環境很方便，但不是標準 C++ 標頭；正式專案應改引入實際使用的標頭。")
+    if not notes:
+        notes.append("程式採直線式流程完成計算；依序追蹤變數從輸入、轉換到輸出即可掌握它。")
+
+    # Preserve order while removing duplicate labels introduced by metadata.
+    unique_tags = list(dict.fromkeys(tag for tag in tags if tag))
+    return unique_tags, list(dict.fromkeys(notes))
+
+
+def source_explanation(path: Path, group_title: str, metadata: dict | None = None) -> str:
+    tags, notes = inferred_code_notes(path, metadata)
+    language = LANGUAGE_NAMES[path.suffix.lower()]
+    tag_markup = badges(tags, "code-tag")
+    note_markup = "".join(f"    <li>{item}</li>\n" for item in notes)
+    return (
+        '<div class="code-explanation" markdown="1">\n'
+        '  <div class="code-explanation__heading">\n'
+        f'    <strong>怎麼讀這份 {language} 程式</strong>\n'
+        f'    <span>{html.escape(group_title)} 的一份可執行解法</span>\n'
+        '  </div>\n'
+        f'  <div class="code-explanation__tags">{tag_markup}</div>\n'
+        '  <ul>\n'
+        f'{note_markup}'
+        '  </ul>\n'
+        '</div>\n\n'
     )
 
 
@@ -440,7 +524,9 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
             source_text = copied_file.read_text(encoding="utf-8", errors="replace").rstrip()
             page.extend(
                 [
+                    f'<a id="{source_anchor(source_file)}"></a>\n\n',
                     f"## `{source_file.name}`\n\n",
+                    source_explanation(source_file, title, metadata),
                     f"[開啟原始檔]({source_link}){{ .source-download }}\n\n",
                     f"````{language}\n{source_text}\n````\n\n",
                 ]
@@ -519,6 +605,102 @@ def write_file_index(directory_name: str) -> None:
     (destination_root / "index.md").write_text("".join(overview), encoding="utf-8")
 
 
+def write_program_catalog() -> None:
+    """Build one cross-source catalogue where tags are first-class filters."""
+    entries: list[dict] = []
+    all_tags: set[str] = set()
+    for material_directory in material_directories():
+        source_files = sorted(
+            (path for path in material_directory.rglob("*") if path.suffix.lower() in SOURCE_SUFFIXES),
+            key=lambda path: path.relative_to(material_directory).as_posix().lower(),
+        )
+        for source_file in source_files:
+            relative_parent = source_file.parent.relative_to(material_directory)
+            note = problem_metadata(source_file.parent)
+            metadata = note[0] if note else {}
+            fallback_title = (
+                source_file.stem if relative_parent == Path(".") else relative_parent.as_posix()
+            )
+            title = str(metadata.get("title", fallback_title))
+            tags, _ = inferred_code_notes(source_file, metadata)
+            all_tags.update(tags)
+            page_directory = "_root" if relative_parent == Path(".") else relative_parent.as_posix()
+            href = f'../{quote(material_directory.name)}/{quote(page_directory)}/#{source_anchor(source_file)}'
+            search_text = " ".join(
+                [title, source_file.name, display_name(material_directory.name), *tags]
+            ).lower()
+            entries.append(
+                {
+                    "title": title,
+                    "filename": source_file.name,
+                    "source": display_name(material_directory.name),
+                    "language": LANGUAGE_NAMES[source_file.suffix.lower()],
+                    "tags": tags,
+                    "href": href,
+                    "search": search_text,
+                }
+            )
+
+    entries.sort(key=lambda item: (item["source"].lower(), item["title"].lower(), item["filename"].lower()))
+    popular_tags = sorted(
+        all_tags,
+        key=lambda tag: (
+            -sum(tag in entry["tags"] for entry in entries),
+            tag.lower(),
+        ),
+    )
+    sources = sorted({entry["source"] for entry in entries}, key=str.lower)
+    languages = sorted({entry["language"] for entry in entries})
+
+    page = [
+        "# 程式標籤搜尋\n\n",
+        "把所有平台與章節放進同一個索引。可輸入題名，也可點選標籤交叉篩選；標籤不是裝飾，是用來辨認解題模式的。\n\n",
+        '<label class="source-search program-search">\n',
+        '  <span>搜尋程式</span>\n',
+        '  <input type="search" placeholder="例如：binary-search、遞迴、c002" autocomplete="off">\n',
+        '</label>\n\n',
+        '<div class="problem-filters program-filters" data-program-filters>\n',
+        '  <label>來源<select data-program-source><option value="all">全部來源</option>\n',
+    ]
+    for source in sources:
+        page.append(f'    <option value="{html.escape(source, quote=True)}">{html.escape(source)}</option>\n')
+    page.extend(['  </select></label>\n', '  <label>語言<select data-program-language><option value="all">全部語言</option>\n'])
+    for language in languages:
+        page.append(f'    <option value="{html.escape(language, quote=True)}">{html.escape(language)}</option>\n')
+    page.extend(
+        [
+            '  </select></label>\n',
+            '  <button type="button" data-program-reset>清除條件</button>\n',
+            '</div>\n\n',
+            '<div class="tag-cloud" data-program-tag-cloud aria-label="用標籤篩選">\n',
+        ]
+    )
+    for tag in popular_tags:
+        count = sum(tag in entry["tags"] for entry in entries)
+        page.append(
+            f'  <button type="button" data-program-tag="{html.escape(tag, quote=True)}" aria-pressed="false">'
+            f'{html.escape(tag)} <span>{count}</span></button>\n'
+        )
+    page.extend(['</div>\n\n', '<p class="source-count" aria-live="polite"></p>\n\n', '<div class="source-index program-index" data-program-index>\n'])
+    for entry in entries:
+        tag_value = "|".join(entry["tags"])
+        tag_markup = badges(entry["tags"][:6], "code-tag")
+        page.extend(
+            [
+                f'  <a class="source-card program-card" href="{entry["href"]}" data-source-search="{html.escape(entry["search"], quote=True)}" data-program-source="{html.escape(entry["source"], quote=True)}" data-program-language="{html.escape(entry["language"], quote=True)}" data-program-tags="{html.escape(tag_value, quote=True)}">\n',
+                f'    <span class="problem-card__eyebrow">{html.escape(entry["source"])} · {html.escape(entry["language"])}</span>\n',
+                f'    <strong>{html.escape(entry["title"])}</strong>\n',
+                f'    <span class="lesson-filename">{html.escape(entry["filename"])}</span>\n',
+                f'    <span class="program-card__tags">{tag_markup}</span>\n',
+                '  </a>\n',
+            ]
+        )
+    page.extend(['</div>\n\n', '<p class="source-empty" hidden>找不到符合條件的程式。試著少選一個標籤。</p>\n'])
+    destination = DESTINATION / "programs"
+    destination.mkdir(parents=True, exist_ok=True)
+    (destination / "index.md").write_text("".join(page), encoding="utf-8")
+
+
 def write_generated_config() -> None:
     """Generate a collapsible sidebar that mirrors the material folders."""
     base_config = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
@@ -528,6 +710,7 @@ def write_generated_config() -> None:
         "",
         "nav:",
         '  - "首頁": "index.md"',
+        '  - "程式標籤搜尋": "programs/index.md"',
     ]
 
     for material_directory in material_directories():
@@ -611,6 +794,7 @@ def main() -> None:
             write_markdown_index(directory_name)
         else:
             write_file_index(directory_name)
+    write_program_catalog()
     write_generated_config()
 
 

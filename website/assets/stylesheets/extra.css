@@ -762,6 +762,91 @@ body::before {
 .md-typeset .problem-tag { color: #81d8e8; background: rgba(103, 212, 232, 0.08); }
 .md-typeset .problem-tag--pattern { color: #c3a9ff; background: rgba(168, 125, 238, 0.08); }
 
+/* Per-file reading guide and the cross-source tag catalogue. */
+.md-typeset .code-explanation {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0.8rem 0 1rem;
+  padding: 0.9rem 1rem;
+  background: linear-gradient(135deg, rgba(168, 125, 238, 0.09), transparent 58%), rgba(8, 14, 22, 0.78);
+  border: 1px solid #34475a;
+  border-radius: 0.75rem;
+}
+
+.md-typeset .code-explanation__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 0.8rem;
+}
+
+.md-typeset .code-explanation__heading strong { color: #edf7fa; }
+.md-typeset .code-explanation__heading span { color: #97aab4; font-size: 0.64rem; }
+.md-typeset .code-explanation__tags,
+.md-typeset .program-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.md-typeset .code-explanation ul { margin: 0; }
+.md-typeset .code-explanation li { margin: 0.25rem 0; color: #bdcbd2; font-size: 0.72rem; }
+
+.md-typeset .code-tag {
+  display: inline-flex;
+  padding: 0.16rem 0.45rem;
+  color: #bca8f1;
+  background: rgba(168, 125, 238, 0.08);
+  border: 1px solid rgba(168, 125, 238, 0.35);
+  border-radius: 999px;
+  font-family: var(--md-code-font);
+  font-size: 0.55rem;
+}
+
+.md-typeset .program-filters { grid-template-columns: repeat(2, minmax(9rem, 1fr)) auto; }
+
+.md-typeset .tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.9rem 0 1.1rem;
+}
+
+.md-typeset .tag-cloud button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  padding: 0.32rem 0.55rem;
+  color: #b9c7ce;
+  background: rgba(12, 20, 29, 0.82);
+  border: 1px solid #34475a;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.62rem;
+}
+
+.md-typeset .tag-cloud button span { color: #7f929d; font-size: 0.54rem; }
+.md-typeset .tag-cloud button:hover { border-color: #67d4e8; }
+.md-typeset .tag-cloud button.is-active {
+  color: #111820;
+  background: #c3a9ff;
+  border-color: #d5c4ff;
+}
+.md-typeset .tag-cloud button.is-active span { color: #43375e; }
+
+.md-typeset .program-index {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+.md-typeset .program-index .program-card {
+  min-height: 9rem;
+  justify-content: flex-start;
+}
+
+.md-typeset .program-card__tags { margin-top: auto; }
+
 .md-typeset .problem-meta {
   display: grid;
   gap: 0.7rem;
@@ -880,6 +965,7 @@ body::before {
 
 @media screen and (max-width: 44.984375em) {
   .md-typeset .problem-filters { grid-template-columns: 1fr; }
+  .md-typeset .program-filters { grid-template-columns: 1fr; }
   .md-typeset .visualizer-cells,
   .md-typeset .prefix-visualizer { grid-template-columns: 1fr; }
 }

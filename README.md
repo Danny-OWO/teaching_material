@@ -19,6 +19,10 @@
 ## 從這裡開始
 
 <div class="home-links">
+  <a href="programs/">
+    <strong>程式標籤搜尋</strong>
+    <span>跨平台搜尋所有程式，搭配語言、來源與演算法標籤交叉篩選。</span>
+  </a>
   <a href="leetcode/">
     <strong>LeetCode 題解</strong>
     <span>用標籤、解題模式與互動圖解整理我實際寫過的題目。</span>

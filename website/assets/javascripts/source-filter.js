@@ -12,6 +12,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const topicSelect = document.querySelector("[data-problem-topic]");
   const sortSelect = document.querySelector("[data-problem-sort]");
   const resetButton = document.querySelector("[data-problem-reset]");
+  const programSource = document.querySelector("[data-program-source]");
+  const programLanguage = document.querySelector("[data-program-language]");
+  const programReset = document.querySelector("[data-program-reset]");
+  const programTagButtons = [...document.querySelectorAll("[data-program-tag]")];
+  const selectedProgramTags = new Set();
   let selectedLetter = "all";
 
   if (!search || cards.length === 0) return;
@@ -30,7 +35,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const matchesDifficulty =
         selectedDifficulty === "all" || card.dataset.problemDifficulty === selectedDifficulty;
       const matchesTopic = selectedTopic === "all" || cardTopics.includes(selectedTopic);
-      const matches = matchesQuery && matchesLetter && matchesDifficulty && matchesTopic;
+      const selectedSource = programSource?.value ?? "all";
+      const selectedLanguage = programLanguage?.value ?? "all";
+      const programTags = (card.dataset.programTags ?? "").split("|").filter(Boolean);
+      const matchesSource = selectedSource === "all" || card.dataset.programSource === selectedSource;
+      const matchesLanguage =
+        selectedLanguage === "all" || card.dataset.programLanguage === selectedLanguage;
+      const matchesProgramTags = [...selectedProgramTags].every((tag) => programTags.includes(tag));
+      const matches =
+        matchesQuery && matchesLetter && matchesDifficulty && matchesTopic &&
+        matchesSource && matchesLanguage && matchesProgramTags;
       card.hidden = !matches;
       if (matches) visible += 1;
     });
@@ -74,11 +88,38 @@ document.addEventListener("DOMContentLoaded", () => {
   difficultySelect?.addEventListener("change", update);
   topicSelect?.addEventListener("change", update);
   sortSelect?.addEventListener("change", update);
+  programSource?.addEventListener("change", update);
+  programLanguage?.addEventListener("change", update);
+  programTagButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const tag = button.dataset.programTag;
+      if (selectedProgramTags.has(tag)) {
+        selectedProgramTags.delete(tag);
+      } else {
+        selectedProgramTags.add(tag);
+      }
+      const active = selectedProgramTags.has(tag);
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+      update();
+    });
+  });
   resetButton?.addEventListener("click", () => {
     search.value = "";
     if (difficultySelect) difficultySelect.value = "all";
     if (topicSelect) topicSelect.value = "all";
     if (sortSelect) sortSelect.value = "route";
+    update();
+  });
+  programReset?.addEventListener("click", () => {
+    search.value = "";
+    if (programSource) programSource.value = "all";
+    if (programLanguage) programLanguage.value = "all";
+    selectedProgramTags.clear();
+    programTagButtons.forEach((button) => {
+      button.classList.remove("is-active");
+      button.setAttribute("aria-pressed", "false");
+    });
     update();
   });
   update();
