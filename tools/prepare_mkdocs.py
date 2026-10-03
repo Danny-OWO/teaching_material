@@ -760,6 +760,7 @@ def write_generated_config() -> None:
         "",
         "nav:",
         '  - "首頁": "index.md"',
+        '  - "Butterfly Judger ↗": "https://danny-owo.github.io/butterfly_judger/"',
         '  - "程式標籤搜尋": "programs/index.md"',
     ]
 

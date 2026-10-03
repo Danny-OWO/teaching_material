@@ -70,6 +70,7 @@ markdown_extensions:
 
 nav:
   - 首頁: index.md
+  - Butterfly Judger ↗: https://danny-owo.github.io/butterfly_judger/
   - APCS 課程: APCS/index.md
   - CodeCat: codecat/index.md
   - CSES Problem Set: CSES_problem_set/index.md
