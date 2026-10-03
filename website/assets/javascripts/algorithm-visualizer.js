@@ -103,4 +103,127 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     showQuery(queries[0]);
   });
+
+  document.querySelectorAll("[data-ratio-split]").forEach((root) => {
+    const values = (root.dataset.values ?? "").split(",").map(Number);
+    const l = Number(root.dataset.l);
+    const r = Number(root.dataset.r);
+    const a = Number(root.dataset.a);
+    const b = Number(root.dataset.b);
+    const prefix = [0];
+    values.forEach((value) => prefix.push(prefix.at(-1) + value));
+
+    const cells = root.querySelector("[data-ratio-cells]");
+    const message = root.querySelector("[data-ratio-message]");
+    const status = root.querySelector("[data-ratio-status]");
+    const nextButton = root.querySelector("[data-ratio-next]");
+    const playButton = root.querySelector("[data-ratio-play]");
+    const resetButton = root.querySelector("[data-ratio-reset]");
+
+    const isValid =
+      cells && message && status && nextButton && playButton && resetButton &&
+      values.length > 0 && values.every(Number.isFinite) &&
+      Number.isInteger(l) && Number.isInteger(r) && l >= 1 && r <= values.length && l <= r &&
+      Number.isFinite(a) && Number.isFinite(b) && a > 0 && b > 0;
+    if (!isValid) return;
+
+    const total = prefix[r] - prefix[l - 1];
+    const steps = [];
+    let left = l;
+    let right = r;
+    while (left < right) {
+      const mid = Math.floor((left + right) / 2);
+      const partial = prefix[mid] - prefix[l - 1];
+      const feasible = partial * (a + b) >= a * total;
+      steps.push({ left, right, mid, partial, feasible });
+      if (feasible) right = mid;
+      else left = mid + 1;
+    }
+    const answer = left;
+    const frames = [
+      { kind: "prefix" },
+      { kind: "target" },
+      ...steps.map((step) => ({ kind: "search", ...step })),
+      { kind: "done", answer },
+    ];
+
+    let frameIndex = 0;
+    let timer = null;
+
+    const stopPlaying = () => {
+      if (timer !== null) window.clearInterval(timer);
+      timer = null;
+      playButton.textContent = "播放動畫";
+    };
+
+    const renderCells = (frame) => {
+      cells.replaceChildren(
+        ...values.map((value, index) => {
+          const position = index + 1;
+          const cell = document.createElement("div");
+          cell.className = "visualizer-cell";
+          if (position < l || position > r) cell.classList.add("is-discarded");
+          if (frame.kind === "search") {
+            if (position < frame.left || position > frame.right) cell.classList.add("is-discarded");
+            if (position === frame.left) cell.classList.add("is-left");
+            if (position === frame.right) cell.classList.add("is-right");
+            if (position === frame.mid) cell.classList.add("is-middle");
+          }
+          if (frame.kind === "done" && position === frame.answer) cell.classList.add("is-found");
+          cell.innerHTML = `<span>w[${position}] = ${value}</span><small>prefix[${position}] = ${prefix[position]}</small>`;
+          return cell;
+        })
+      );
+    };
+
+    const render = () => {
+      const frame = frames[frameIndex];
+      renderCells(frame);
+
+      if (frame.kind === "prefix") {
+        status.textContent = `prefix = [${prefix.join(", ")}]`;
+        message.textContent = `先累積一次。之後 S(${l},${r}) = prefix[${r}] - prefix[${l - 1}] = ${prefix[r]} - ${prefix[l - 1]} = ${total}。`;
+      } else if (frame.kind === "target") {
+        status.textContent = `目標比例 ${a}/${a + b}`;
+        message.textContent = `避免小數：找第一個 k，使 S(${l},k) × ${a + b} ≥ ${a} × ${total} = ${a * total}。`;
+      } else if (frame.kind === "search") {
+        const comparison = `${frame.partial * (a + b)} ${frame.feasible ? "≥" : "<"} ${a * total}`;
+        status.textContent = `left=${frame.left}, mid=${frame.mid}, right=${frame.right}`;
+        message.textContent = `S(${l},${frame.mid}) = ${frame.partial}，所以 ${comparison}：mid ${frame.feasible ? "已達標，保留 mid 並收右界" : "未達標，答案只能在右側"}。`;
+      } else {
+        status.textContent = `答案 k = ${frame.answer}`;
+        message.textContent = `搜尋範圍只剩 ${frame.answer}；它是第一個讓累積比例達標的位置。`;
+      }
+
+      nextButton.disabled = frameIndex === frames.length - 1;
+      if (nextButton.disabled) stopPlaying();
+    };
+
+    const advance = () => {
+      if (frameIndex < frames.length - 1) frameIndex += 1;
+      render();
+    };
+
+    nextButton.addEventListener("click", () => {
+      stopPlaying();
+      advance();
+    });
+    playButton.addEventListener("click", () => {
+      if (timer !== null) {
+        stopPlaying();
+        return;
+      }
+      if (frameIndex === frames.length - 1) frameIndex = 0;
+      playButton.textContent = "暫停";
+      render();
+      timer = window.setInterval(advance, 1300);
+    });
+    resetButton.addEventListener("click", () => {
+      stopPlaying();
+      frameIndex = 0;
+      render();
+    });
+
+    render();
+  });
 });
