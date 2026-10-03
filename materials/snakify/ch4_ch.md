@@ -67,3 +67,42 @@ for (int row = 1; row <= 3; row++) {
 ```
 
 這會輸出一個 3 列、4 欄的長方形。
+
+## 5. 計數與乘積
+
+計算一組資料中有幾個 `0`：
+
+```cpp
+int n, zeroCount = 0;
+cin >> n;
+
+for (int i = 0; i < n; i++) {
+    int x;
+    cin >> x;
+    if (x == 0) {
+        zeroCount++;
+    }
+}
+```
+
+計算階乘 `n!`：
+
+```cpp
+long long factorial = 1;
+for (int i = 2; i <= n; i++) {
+    factorial *= i;
+}
+```
+
+求和從 `0` 開始，求乘積從 `1` 開始。
+
+## 6. 選擇迴圈範圍
+
+| 需求 | 常用寫法 |
+|---|---|
+| 重複 `n` 次 | `for (int i = 0; i < n; i++)` |
+| 從 `1` 到 `n` | `for (int i = 1; i <= n; i++)` |
+| 從 `n` 倒數到 `1` | `for (int i = n; i >= 1; i--)` |
+| 每次增加 `step` | `for (int i = start; i <= end; i += step)` |
+
+寫迴圈前先確認起點、終點是否包含，以及每次要增加多少。

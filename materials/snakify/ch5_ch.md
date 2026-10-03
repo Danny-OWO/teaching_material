@@ -69,3 +69,71 @@ for (char c : s) {
     cout << c << '\n';
 }
 ```
+
+## 5. 常用字串操作
+
+| 寫法 | 功能 |
+|---|---|
+| `s.empty()` | 檢查字串是否為空 |
+| `s.front()` | 第一個字元 |
+| `s.back()` | 最後一個字元 |
+| `s += text` | 在尾端接上文字 |
+| `s.insert(pos, text)` | 在 `pos` 插入文字 |
+| `s.erase(pos, length)` | 從 `pos` 刪除指定長度 |
+| `s.replace(pos, length, text)` | 將一段文字換掉 |
+| `s.find(text)` | 尋找第一次出現的位置 |
+| `s.rfind(text)` | 尋找最後一次出現的位置 |
+
+```cpp
+string s = "I like cats";
+s.replace(7, 4, "dogs");  // I like dogs
+s.erase(1, 1);             // Ilike dogs
+s.insert(1, " ");         // I like dogs
+```
+
+這些函式的 `length` 是「字元數量」，不是結束位置。
+
+## 6. 反轉與計數
+
+引入 `<algorithm>` 後，可以使用 `reverse` 與 `count`：
+
+```cpp
+#include <algorithm>
+
+string s = "banana";
+int numberOfA = count(s.begin(), s.end(), 'a');
+
+reverse(s.begin(), s.end());
+cout << s << '\n';  // ananab
+```
+
+只反轉一部分時，結束位置不包含在範圍內：
+
+```cpp
+reverse(s.begin() + left, s.begin() + right);
+```
+
+這會反轉索引 `[left, right)`。
+
+## 7. 逐字修改
+
+需要修改原字串時，使用參考 `char&`：
+
+```cpp
+for (char& c : s) {
+    if (c == 'a') {
+        c = 'A';
+    }
+}
+```
+
+若要刪除每隔固定位置的字元，建立一個新字串通常最簡單：
+
+```cpp
+string result;
+for (int i = 0; i < s.size(); i++) {
+    if ((i + 1) % 3 != 0) {
+        result += s[i];
+    }
+}
+```

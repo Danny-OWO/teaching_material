@@ -73,3 +73,55 @@ long long factorial(int n)
 ```
 
 遞迴一定要有停止條件。若呼叫層數太深，可能耗盡記憶體；能用簡單迴圈完成時，迴圈通常更合適。
+
+## 5. 將 `vector` 傳入函式
+
+只讀取資料時，使用 `const` 參考：
+
+```cpp
+int sum(const vector<int>& values)
+{
+    int result = 0;
+    for (int value : values) {
+        result += value;
+    }
+    return result;
+}
+```
+
+需要修改內容時，移除 `const`：
+
+```cpp
+void doubleAll(vector<int>& values)
+{
+    for (int& value : values) {
+        value *= 2;
+    }
+}
+```
+
+## 6. 遞迴的組成
+
+每個遞迴函式都要回答兩個問題：
+
+1. 最簡單的情況如何直接得到答案？
+2. 如何把問題縮小，讓它逐步接近最簡單的情況？
+
+例如快速計算整數次方：
+
+```cpp
+long long power(long long a, int n)
+{
+    if (n == 0) {
+        return 1;
+    }
+
+    long long half = power(a, n / 2);
+    if (n % 2 == 0) {
+        return half * half;
+    }
+    return half * half * a;
+}
+```
+
+每次把 `n` 除以 `2`，問題會快速縮小。

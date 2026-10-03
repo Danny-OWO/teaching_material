@@ -61,3 +61,54 @@ for (int i = 0; i < n; i++) {
 ```
 
 這段程式把主對角線上的元素設為 `1`。
+
+## 5. 列數與欄數
+
+```cpp
+int rows = a.size();
+int columns = a.empty() ? 0 : a[0].size();
+```
+
+先檢查 `a.empty()`，才不會在空表格中存取 `a[0]`。
+
+也可以直接走訪每一列：
+
+```cpp
+for (const vector<int>& row : a) {
+    for (int value : row) {
+        cout << value << ' ';
+    }
+    cout << '\n';
+}
+```
+
+## 6. 交換兩欄
+
+```cpp
+int firstColumn, secondColumn;
+cin >> firstColumn >> secondColumn;
+
+for (int i = 0; i < n; i++) {
+    swap(a[i][firstColumn], a[i][secondColumn]);
+}
+```
+
+每一列都交換相同的兩個欄位置。
+
+## 7. 矩陣乘法
+
+若 `a` 是 `n × m`，`b` 是 `m × k`，結果會是 `n × k`：
+
+```cpp
+vector<vector<long long>> result(n, vector<long long>(k, 0));
+
+for (int i = 0; i < n; i++) {
+    for (int j = 0; j < k; j++) {
+        for (int t = 0; t < m; t++) {
+            result[i][j] += 1LL * a[i][t] * b[t][j];
+        }
+    }
+}
+```
+
+三個索引分別表示結果的列、結果的欄，以及相乘後加總的位置。

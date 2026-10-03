@@ -57,3 +57,52 @@ if (score >= 90) {
 ```
 
 條件會由上往下檢查，只執行第一個成立的區塊。
+
+## 5. 巢狀條件
+
+條件區塊裡可以再放一個條件。例如判斷座標位於哪個象限：
+
+```cpp
+if (x > 0) {
+    if (y > 0) {
+        cout << "I\n";
+    } else {
+        cout << "IV\n";
+    }
+} else {
+    if (y > 0) {
+        cout << "II\n";
+    } else {
+        cout << "III\n";
+    }
+}
+```
+
+若能用 `&&` 或 `else if` 寫得更清楚，就不必過度巢狀。
+
+## 6. 常用函式與判斷技巧
+
+引入 `<algorithm>` 後可以使用 `min`、`max` 與 `swap`：
+
+```cpp
+cout << min(a, b) << '\n';
+cout << max(a, b) << '\n';
+swap(a, b);
+```
+
+引入 `<cstdlib>` 後，`abs(x)` 可以取得整數的絕對值。
+
+棋盤移動題常利用座標差：
+
+```cpp
+int dx = abs(x1 - x2);
+int dy = abs(y1 - y2);
+
+bool rook = (x1 == x2 || y1 == y2) && (dx + dy > 0);
+bool bishop = (dx == dy && dx > 0);
+bool king = (max(dx, dy) == 1);
+bool queen = rook || bishop;
+bool knight = (dx == 1 && dy == 2) || (dx == 2 && dy == 1);
+```
+
+先把複雜條件存成有意義的 `bool` 變數，程式會更容易檢查。
