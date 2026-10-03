@@ -1,4 +1,3 @@
-#this approach got 40% even we implement prefix
 n, m = [int(x) for x in input().split()]
 w = [int(x) for x in input().split()]
 
