@@ -1,0 +1,28 @@
+101:
+  title: 字串欄寬與左右對齊輸出
+  difficulty: easy
+  topics:
+    - 字串
+    - 格式化輸出
+  patterns:
+    - 固定欄寬排版
+  techniques:
+    - str.format
+    - 對齊格式指定符
+  pitfalls:
+    - 欄寬是最小寬度，不會截短較長字串
+
+102:
+  title: 浮點數小數位數與左右對齊輸出
+  difficulty: easy
+  topics:
+    - 浮點數
+    - 格式化輸出
+  patterns:
+    - 固定欄寬排版
+  techniques:
+    - str.format
+    - 兩位小數格式
+    - 對齊格式指定符
+  pitfalls:
+    - 輸入必須能轉換為浮點數
