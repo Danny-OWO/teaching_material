@@ -14,6 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!cells || !message || values.some((value) => !Number.isFinite(value))) return;
 
+    message.setAttribute("aria-live", "polite");
+    message.setAttribute("aria-atomic", "true");
+
     const render = (explanation) => {
       cells.replaceChildren(
         ...values.map((need, index) => {
@@ -76,6 +79,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!cells || !message || !controls || values.some((value) => !Number.isFinite(value))) return;
 
+    message.setAttribute("aria-live", "polite");
+    message.setAttribute("aria-atomic", "true");
+
     const showQuery = (query) => {
       const count = prefix.filter((sum) => sum <= query).length;
       cells.replaceChildren(
@@ -126,6 +132,9 @@ document.addEventListener("DOMContentLoaded", () => {
       Number.isInteger(l) && Number.isInteger(r) && l >= 1 && r <= values.length && l <= r &&
       Number.isFinite(a) && Number.isFinite(b) && a > 0 && b > 0;
     if (!isValid) return;
+
+    message.setAttribute("aria-live", "polite");
+    message.setAttribute("aria-atomic", "true");
 
     const total = prefix[r] - prefix[l - 1];
     const steps = [];

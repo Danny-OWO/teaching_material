@@ -937,6 +937,18 @@ body::before {
 }
 .md-typeset .tag-cloud button.is-active span { color: #26343b; }
 
+.md-typeset .program-tag-drawer summary:focus-visible,
+.md-typeset .tag-cloud button:focus-visible,
+.md-typeset .problem-filters select:focus-visible,
+.md-typeset .problem-filters button:focus-visible,
+.md-typeset .visualizer-controls button:focus-visible {
+  outline: 0.15rem solid #a9effa !important;
+  outline-offset: 0.15rem;
+  box-shadow:
+    0 0 0 0.1rem #080b10,
+    0 0 0 0.28rem rgba(103, 212, 232, 0.38) !important;
+}
+
 .md-typeset .program-index {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
 }
