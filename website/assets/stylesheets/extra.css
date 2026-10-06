@@ -398,7 +398,8 @@ body::before {
 .md-typeset .source-count,
 .md-typeset .source-empty {
   color: #9eadb8;
-  font-size: 0.68rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
 }
 
 .md-typeset .source-alphabet {
@@ -437,7 +438,7 @@ body::before {
   color: #8fa5af;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 999px;
-  font-size: 0.56rem;
+  font-size: 0.64rem;
 }
 
 .md-typeset .source-alphabet button:hover,
@@ -537,7 +538,8 @@ body::before {
   background: rgba(103, 212, 232, 0.08);
   border: 1px solid rgba(103, 212, 232, 0.2);
   border-radius: 999px;
-  font-size: 0.62rem;
+  font-size: 0.7rem;
+  line-height: 1.5;
 }
 
 .md-typeset .lesson-filename {
@@ -685,7 +687,8 @@ body::before {
   display: grid;
   gap: 0.3rem;
   color: #aebec7;
-  font-size: 0.64rem;
+  font-size: 0.73rem;
+  line-height: 1.5;
   font-weight: 600;
 }
 
@@ -726,7 +729,9 @@ body::before {
   order: -1;
   color: #8fa5af;
   font-family: var(--md-code-font);
-  font-size: 0.58rem;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -742,18 +747,20 @@ body::before {
 .md-typeset .problem-card__pattern {
   margin-top: auto;
   color: #9eb2bc;
-  font-size: 0.63rem;
+  font-size: 0.72rem;
+  line-height: 1.5;
 }
 
 .md-typeset .difficulty,
 .md-typeset .problem-tag {
   display: inline-flex;
   align-items: center;
-  padding: 0.17rem 0.48rem;
+  padding: 0.2rem 0.5rem;
   border: 1px solid currentColor;
   border-radius: 999px;
-  font-size: 0.58rem;
-  line-height: 1.45;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .md-typeset .difficulty--easy { color: #79dfa0; background: rgba(69, 190, 112, 0.1); }
@@ -801,7 +808,9 @@ body::before {
   border: 1px solid rgba(168, 125, 238, 0.35);
   border-radius: 999px;
   font-family: var(--md-code-font);
-  font-size: 0.55rem;
+  font-size: 0.66rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 /* The same tag always maps to the same tone across cards and problem pages. */
@@ -859,7 +868,7 @@ body::before {
 
 .md-typeset .program-tags__heading strong,
 .md-typeset .program-results-heading strong { color: #e6f1f5; font-size: 0.75rem; }
-.md-typeset .program-tags__heading span { color: #8fa5af; font-size: 0.6rem; text-align: right; }
+.md-typeset .program-tags__heading span { color: #8fa5af; font-size: 0.7rem; line-height: 1.5; text-align: right; }
 
 .md-typeset .tag-cloud {
   display: flex;
@@ -875,7 +884,8 @@ body::before {
   border: 0 !important;
   outline: none !important;
   box-shadow: none !important;
-  font-size: 0.64rem;
+  font-size: 0.72rem;
+  line-height: 1.5;
 }
 
 .md-typeset .program-tag-drawer:focus-within {
@@ -918,10 +928,18 @@ body::before {
   border-radius: 999px;
   cursor: pointer;
   font: inherit;
-  font-size: 0.62rem;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  text-align: left;
+  overflow-wrap: anywhere;
 }
 
-.md-typeset .tag-cloud button span { color: #7f929d; font-size: 0.54rem; }
+.md-typeset .tag-cloud button span {
+  flex-shrink: 0;
+  color: #9aadb7;
+  font-size: 0.64rem;
+  white-space: nowrap;
+}
 .md-typeset .tag-cloud button:hover { border-color: #67d4e8; }
 .md-typeset .tag-cloud button.tag-tone-0 { color: #7ddde8; border-color: rgba(82, 202, 218, 0.45); background: rgba(82, 202, 218, 0.09); }
 .md-typeset .tag-cloud button.tag-tone-1 { color: #bfa7f2; border-color: rgba(168, 125, 238, 0.45); background: rgba(168, 125, 238, 0.09); }
@@ -965,7 +983,8 @@ body::before {
 .md-typeset .program-card__tags { margin-top: 0.15rem; }
 .md-typeset .program-card__difficulty {
   width: fit-content;
-  font-size: 0.55rem;
+  font-size: 0.66rem;
+  line-height: 1.5;
 }
 .md-typeset .difficulty--unrated { color: #94a4ad; }
 
