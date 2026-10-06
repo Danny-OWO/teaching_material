@@ -87,6 +87,232 @@ pitfalls: off-by-one
             self.assertEqual(body, "Explanation.\n")
 
 
+class PerFileProblemMetadataTests(unittest.TestCase):
+    def make_directory(self, temporary_directory, manifest, sources=("sample.py",)):
+        directory = Path(temporary_directory) / "exercises"
+        directory.mkdir()
+        for source in sources:
+            (directory / source).write_text("print(1)\n", encoding="utf-8")
+        (directory / "_problems.yml").write_text(manifest, encoding="utf-8")
+        return directory
+
+    def test_manifest_metadata_is_shared_by_cpp_and_python_with_the_same_stem(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            directory = self.make_directory(
+                temporary_directory,
+                """sample:
+  title: Shared Exercise
+  difficulty: medium
+  topics: arrays
+  patterns:
+    - simulation
+  techniques: counting
+""",
+                sources=("sample.cpp", "sample.py"),
+            )
+
+            metadata = prepare_mkdocs.per_file_problem_metadata(directory)
+
+            self.assertEqual(list(metadata), ["sample"])
+            self.assertEqual(metadata["sample"]["title"], "Shared Exercise")
+            self.assertEqual(metadata["sample"]["topics"], ["arrays"])
+            self.assertEqual(metadata["sample"]["techniques"], ["counting"])
+
+    def test_manifest_normalizes_an_unquoted_integer_key_to_a_source_stem(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            directory = self.make_directory(
+                temporary_directory,
+                """101:
+  title: Numeric Exercise
+  difficulty: easy
+  topics: arithmetic
+  patterns: simulation
+""",
+                sources=("101.py",),
+            )
+
+            metadata = prepare_mkdocs.per_file_problem_metadata(directory)
+
+            self.assertEqual(list(metadata), ["101"])
+            self.assertEqual(metadata["101"]["title"], "Numeric Exercise")
+
+    def test_manifest_rejects_invalid_key_types_and_normalized_collisions(self):
+        cases = (
+            (
+                "true:\n  title: Invalid\n  difficulty: easy\n  topics: loops\n  patterns: simulation\n",
+                "Manifest key True.*must be a string or integer",
+            ),
+            (
+                "1.5:\n  title: Invalid\n  difficulty: easy\n  topics: loops\n  patterns: simulation\n",
+                "Manifest key 1.5.*must be a string or integer",
+            ),
+            (
+                """101:
+  title: First
+  difficulty: easy
+  topics: arithmetic
+  patterns: simulation
+"101":
+  title: Second
+  difficulty: medium
+  topics: arithmetic
+  patterns: counting
+""",
+                "duplicate source stem after key normalization: 101",
+            ),
+        )
+        for manifest, message in cases:
+            with self.subTest(manifest=manifest):
+                with tempfile.TemporaryDirectory() as temporary_directory:
+                    directory = self.make_directory(
+                        temporary_directory, manifest, sources=("101.py",)
+                    )
+                    with self.assertRaisesRegex(ValueError, message):
+                        prepare_mkdocs.per_file_problem_metadata(directory)
+
+    def test_manifest_rejects_malformed_root_and_entry(self):
+        cases = (
+            ("- not\n- a mapping\n", "Manifest .* must be a mapping"),
+            ("sample:\n  - not a mapping\n", "Entry 'sample'.* must be a mapping"),
+        )
+        for manifest, message in cases:
+            with self.subTest(manifest=manifest):
+                with tempfile.TemporaryDirectory() as temporary_directory:
+                    directory = self.make_directory(temporary_directory, manifest)
+                    with self.assertRaisesRegex(ValueError, message):
+                        prepare_mkdocs.per_file_problem_metadata(directory)
+
+    def test_manifest_reuses_required_fields_and_difficulty_validation(self):
+        cases = (
+            (
+                "sample:\n  title: Missing\n  difficulty: easy\n  topics: loops\n",
+                "missing required metadata: patterns",
+            ),
+            (
+                "sample:\n  title: Invalid\n  difficulty: expert\n  topics: loops\n  patterns: simulation\n",
+                "invalid difficulty: expert",
+            ),
+        )
+        for manifest, message in cases:
+            with self.subTest(manifest=manifest):
+                with tempfile.TemporaryDirectory() as temporary_directory:
+                    directory = self.make_directory(temporary_directory, manifest)
+                    with self.assertRaisesRegex(ValueError, message):
+                        prepare_mkdocs.per_file_problem_metadata(directory)
+
+    def test_manifest_rejects_unknown_source_stem(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            directory = self.make_directory(
+                temporary_directory,
+                """missing:
+  title: Missing Source
+  difficulty: easy
+  topics: loops
+  patterns: simulation
+""",
+            )
+
+            with self.assertRaisesRegex(ValueError, "unknown source stem: missing"):
+                prepare_mkdocs.per_file_problem_metadata(directory)
+
+    def test_directory_problem_note_takes_precedence_over_manifest(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            materials = root / "materials"
+            destination = root / "destination"
+            directory = materials / "Collection" / "sample"
+            directory.mkdir(parents=True)
+            (directory / "sample.py").write_text("print(1)\n", encoding="utf-8")
+            (directory / "problem.md").write_text(
+                """---
+title: Directory Title
+difficulty: easy
+topics: loops
+patterns: simulation
+---
+Directory notes.
+""",
+                encoding="utf-8",
+            )
+            (directory / "_problems.yml").write_text(
+                "- deliberately malformed and ignored\n", encoding="utf-8"
+            )
+
+            with patch.object(prepare_mkdocs, "MATERIALS", materials), patch.object(
+                prepare_mkdocs, "DESTINATION", destination
+            ):
+                prepare_mkdocs.write_program_catalog()
+
+            catalog = (destination / "programs" / "index.md").read_text(encoding="utf-8")
+            self.assertIn("Directory Title", catalog)
+            self.assertIn('data-program-difficulty="easy"', catalog)
+
+    def test_catalog_uses_per_file_title_difficulty_and_tags(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            materials = root / "materials"
+            destination = root / "destination"
+            directory = materials / "Loose" / "chapter"
+            directory.mkdir(parents=True)
+            (directory / "search.cpp").write_text("int main() {}\n", encoding="utf-8")
+            (directory / "search.py").write_text("print('done')\n", encoding="utf-8")
+            (directory / "_problems.yml").write_text(
+                """search:
+  title: Curated Search
+  difficulty: hard
+  topics: graphs
+  patterns: breadth-first-search
+  techniques: queue
+""",
+                encoding="utf-8",
+            )
+
+            with patch.object(prepare_mkdocs, "MATERIALS", materials), patch.object(
+                prepare_mkdocs, "DESTINATION", destination
+            ):
+                prepare_mkdocs.write_program_catalog()
+
+            catalog = (destination / "programs" / "index.md").read_text(encoding="utf-8")
+            self.assertEqual(catalog.count("<strong>Curated Search</strong>"), 1)
+            self.assertIn('data-program-difficulty="hard"', catalog)
+            self.assertIn('data-program-tags="graphs|breadth-first-search|queue"', catalog)
+            self.assertIn("C++ / Python", catalog)
+
+    def test_catalog_keeps_different_stems_with_the_same_curated_title_separate(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            materials = root / "materials"
+            destination = root / "destination"
+            directory = materials / "Loose" / "chapter"
+            directory.mkdir(parents=True)
+            (directory / "first.py").write_text("print('first')\n", encoding="utf-8")
+            (directory / "second.py").write_text("print('second')\n", encoding="utf-8")
+            (directory / "_problems.yml").write_text(
+                """first:
+  title: Shared Display Title
+  difficulty: easy
+  topics: loops
+  patterns: simulation
+second:
+  title: Shared Display Title
+  difficulty: hard
+  topics: arrays
+  patterns: counting
+""",
+                encoding="utf-8",
+            )
+
+            with patch.object(prepare_mkdocs, "MATERIALS", materials), patch.object(
+                prepare_mkdocs, "DESTINATION", destination
+            ):
+                prepare_mkdocs.write_program_catalog()
+
+            catalog = (destination / "programs" / "index.md").read_text(encoding="utf-8")
+            self.assertEqual(catalog.count("<strong>Shared Display Title</strong>"), 2)
+            self.assertIn("#source-first-py", catalog)
+            self.assertIn("#source-second-py", catalog)
+
+
 class MainSmokeTests(unittest.TestCase):
     def test_main_builds_an_isolated_documentation_tree(self):
         with tempfile.TemporaryDirectory() as temporary_directory:

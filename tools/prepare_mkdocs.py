@@ -168,23 +168,64 @@ def read_frontmatter(path: Path) -> tuple[dict, str]:
     return metadata, text[match.end():]
 
 
+def normalize_problem_metadata(metadata: dict, source: Path) -> dict:
+    """Validate and normalize metadata shared by problem notes and manifests."""
+    required = {"title", "difficulty", "topics", "patterns"}
+    missing = sorted(required - metadata.keys())
+    if missing:
+        raise ValueError(f"{source} is missing required metadata: {', '.join(missing)}")
+    difficulty = str(metadata["difficulty"]).lower()
+    if difficulty not in DIFFICULTY_LABELS:
+        raise ValueError(f"{source} has invalid difficulty: {difficulty}")
+    normalized = dict(metadata)
+    normalized["difficulty"] = difficulty
+    for key in ("topics", "patterns", "techniques", "prerequisites", "pitfalls"):
+        value = normalized.get(key, [])
+        normalized[key] = value if isinstance(value, list) else [value]
+    return normalized
+
+
 def problem_metadata(directory: Path) -> tuple[dict, str] | None:
     note = directory / "problem.md"
     if not note.exists():
         return None
     metadata, body = read_frontmatter(note)
-    required = {"title", "difficulty", "topics", "patterns"}
-    missing = sorted(required - metadata.keys())
-    if missing:
-        raise ValueError(f"{note} is missing required metadata: {', '.join(missing)}")
-    difficulty = str(metadata["difficulty"]).lower()
-    if difficulty not in DIFFICULTY_LABELS:
-        raise ValueError(f"{note} has invalid difficulty: {difficulty}")
-    metadata["difficulty"] = difficulty
-    for key in ("topics", "patterns", "techniques", "prerequisites", "pitfalls"):
-        value = metadata.get(key, [])
-        metadata[key] = value if isinstance(value, list) else [value]
-    return metadata, body
+    return normalize_problem_metadata(metadata, note), body
+
+
+def per_file_problem_metadata(directory: Path) -> dict[str, dict]:
+    """Read metadata keyed by source stem for a loose exercise directory."""
+    manifest = directory / "_problems.yml"
+    if not manifest.exists():
+        return {}
+    entries = yaml.safe_load(manifest.read_text(encoding="utf-8"))
+    if entries is None:
+        entries = {}
+    if not isinstance(entries, dict):
+        raise ValueError(f"Manifest in {manifest} must be a mapping")
+
+    source_stems = {
+        path.stem
+        for path in directory.iterdir()
+        if path.is_file() and path.suffix.lower() in SOURCE_SUFFIXES
+    }
+    normalized_entries: dict[str, dict] = {}
+    for manifest_key, metadata in entries.items():
+        if isinstance(manifest_key, bool) or not isinstance(manifest_key, (str, int)):
+            raise ValueError(
+                f"Manifest key {manifest_key!r} in {manifest} must be a string or integer"
+            )
+        stem = str(manifest_key)
+        if stem in normalized_entries:
+            raise ValueError(
+                f"{manifest} has duplicate source stem after key normalization: {stem}"
+            )
+        if not isinstance(metadata, dict):
+            raise ValueError(f"Entry {manifest_key!r} in {manifest} must be a mapping")
+        if stem not in source_stems:
+            raise ValueError(f"{manifest} references unknown source stem: {stem}")
+        normalized_entries[stem] = normalize_problem_metadata(metadata, manifest)
+    return normalized_entries
 
 
 def badges(values: list[str], css_class: str = "problem-tag") -> str:
@@ -615,28 +656,51 @@ def write_program_catalog() -> None:
             (path for path in material_directory.rglob("*") if path.suffix.lower() in SOURCE_SUFFIXES),
             key=lambda path: path.relative_to(material_directory).as_posix().lower(),
         )
+        source_directories = {path.parent for path in source_files}
+        manifest_directories = {
+            path.parent for path in material_directory.rglob("_problems.yml")
+        }
+        metadata_by_directory: dict[Path, tuple[dict, dict[str, dict]]] = {}
+        for directory in source_directories | manifest_directories:
+            directory_note = problem_metadata(directory)
+            metadata_by_directory[directory] = (
+                (directory_note[0], {})
+                if directory_note
+                else ({}, per_file_problem_metadata(directory))
+            )
         stems_by_parent: dict[Path, set[str]] = {}
         for path in source_files:
             stems_by_parent.setdefault(path.parent, set()).add(path.stem.lower())
         for source_file in source_files:
             relative_parent = source_file.parent.relative_to(material_directory)
-            note = problem_metadata(source_file.parent)
-            metadata = note[0] if note else {}
+            directory_metadata, per_file_metadata = metadata_by_directory[source_file.parent]
+            file_metadata = per_file_metadata.get(source_file.stem, {})
+            metadata = directory_metadata or file_metadata
             fallback_title = (
                 relative_parent.name
                 if relative_parent != Path(".") and len(stems_by_parent[source_file.parent]) == 1
                 else source_file.stem
             )
             title = str(metadata.get("title", fallback_title))
-            tags, _ = inferred_code_notes(source_file, metadata)
             language = LANGUAGE_NAMES[source_file.suffix.lower()]
+            if file_metadata:
+                tags = [
+                    language,
+                    *(
+                        str(value)
+                        for key in ("topics", "patterns", "techniques")
+                        for value in file_metadata[key]
+                    ),
+                ]
+            else:
+                tags, _ = inferred_code_notes(source_file, metadata)
             algorithm_tags = [tag for tag in tags if tag not in LANGUAGE_NAMES.values()]
             page_directory = "_root" if relative_parent == Path(".") else relative_parent.as_posix()
             href = f'../{quote(material_directory.name)}/{quote(page_directory)}/#{source_anchor(source_file)}'
             # Curated problem metadata identifies all implementations as one
             # problem. For loose exercise folders, the filename stem is the
             # safest cross-language identity.
-            identity = title if metadata else source_file.stem.lower()
+            identity = title if directory_metadata else source_file.stem.lower()
             key = (material_directory.name, page_directory, identity)
             if key not in grouped_entries:
                 grouped_entries[key] = {
