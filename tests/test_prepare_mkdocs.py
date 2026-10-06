@@ -313,6 +313,106 @@ second:
             self.assertIn("#source-second-py", catalog)
 
 
+class SourcePageMetadataTests(unittest.TestCase):
+    def make_page(self, root, files, manifest=None, note=None):
+        materials = root / "materials"
+        destination = root / "destination"
+        directory = materials / "TQC" / "chapter"
+        directory.mkdir(parents=True)
+        for name, contents in files.items():
+            (directory / name).write_text(contents, encoding="utf-8")
+            copied = destination / "TQC" / "chapter" / name
+            copied.parent.mkdir(parents=True, exist_ok=True)
+            copied.write_text(contents, encoding="utf-8")
+        if manifest is not None:
+            (directory / "_problems.yml").write_text(manifest, encoding="utf-8")
+        if note is not None:
+            (directory / "problem.md").write_text(note, encoding="utf-8")
+
+        with patch.object(prepare_mkdocs, "MATERIALS", materials), patch.object(
+            prepare_mkdocs, "DESTINATION", destination
+        ):
+            prepare_mkdocs.write_source_index("TQC")
+        return (destination / "TQC" / "chapter" / "index.md").read_text(encoding="utf-8")
+
+    def test_tqc_files_use_their_own_titles_and_tags(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            page = self.make_page(
+                Path(temporary_directory),
+                {"101.py": "print(1)\n", "102.py": "print(2)\n"},
+                manifest="""101:
+  title: First Exercise
+  difficulty: easy
+  topics: [arithmetic]
+  patterns: [simulation]
+102:
+  title: Second Exercise
+  difficulty: medium
+  topics: [strings]
+  patterns: [formatting]
+""",
+            )
+
+        first, second = page.split('<a id="source-102-py"></a>')
+        self.assertIn('<a id="source-101-py"></a>', first)
+        self.assertIn("## `101.py` — First Exercise", first)
+        self.assertIn("First Exercise 的一份可執行解法", first)
+        self.assertIn(">arithmetic</span>", first)
+        self.assertIn(">simulation</span>", first)
+        self.assertNotIn(">strings</span>", first)
+        self.assertIn("[開啟原始檔](101.py){ .source-download }", first)
+        self.assertIn("## `102.py` — Second Exercise", second)
+        self.assertIn("Second Exercise 的一份可執行解法", second)
+        self.assertIn(">strings</span>", second)
+        self.assertIn(">formatting</span>", second)
+        self.assertNotIn(">arithmetic</span>", second)
+        self.assertIn("[開啟原始檔](102.py){ .source-download }", second)
+
+    def test_directory_note_takes_precedence_over_manifest_on_source_page(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            page = self.make_page(
+                Path(temporary_directory),
+                {"101.py": "print(1)\n"},
+                manifest="- invalid manifest that must be ignored\n",
+                note="""---
+title: Directory Exercise
+difficulty: easy
+topics: [directory-topic]
+patterns: [directory-pattern]
+---
+Directory notes.
+""",
+            )
+
+        self.assertIn("# Directory Exercise", page)
+        self.assertIn("Directory notes.", page)
+        self.assertIn("## `101.py`\n\n", page)
+        self.assertIn("Directory Exercise 的一份可執行解法", page)
+        self.assertIn(">directory-topic</span>", page)
+        self.assertIn(">directory-pattern</span>", page)
+        self.assertIn('<a id="source-101-py"></a>', page)
+        self.assertIn("[開啟原始檔](101.py){ .source-download }", page)
+
+    def test_directory_without_manifest_keeps_existing_source_page_output(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            page = self.make_page(
+                Path(temporary_directory), {"101.py": "print(1)\n"}
+            )
+            self.assertEqual(
+                page,
+                "# chapter\n\n"
+                "[← 回到程式索引](../index.md)\n\n"
+                '<a id="source-101-py"></a>\n\n'
+                "## `101.py`\n\n"
+                + prepare_mkdocs.source_explanation(
+                    Path(temporary_directory) / "materials" / "TQC" / "chapter" / "101.py",
+                    "chapter",
+                )
+                + "[開啟原始檔](101.py){ .source-download }\n\n"
+                "````python\nprint(1)\n````\n\n",
+            )
+
+
 class MainSmokeTests(unittest.TestCase):
     def test_main_builds_an_isolated_documentation_tree(self):
         with tempfile.TemporaryDirectory() as temporary_directory:

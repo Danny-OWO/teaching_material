@@ -516,6 +516,7 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
         page_directory.mkdir(parents=True, exist_ok=True)
         note = problem_notes.get(source_directory)
         metadata, lesson_body = note if note else ({}, "")
+        file_metadata = per_file_problem_metadata(source_directory) if not note else {}
         title = str(metadata.get("title", "根目錄" if is_root else source_page_title(files[0], source_root)))
         back_link = "../index.md" if is_root else "../" * len(relative_directory.parts) + "index.md"
         page = [f"# {title}\n\n", f"[← 回到程式索引]({back_link})\n\n"]
@@ -565,11 +566,16 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
             source_link = f"../{source_file.name}" if is_root else source_file.name
             language = "cpp" if source_file.suffix.lower() == ".cpp" else "python"
             source_text = copied_file.read_text(encoding="utf-8", errors="replace").rstrip()
+            source_metadata = file_metadata.get(source_file.stem, metadata)
+            source_title = str(source_metadata.get("title", title))
+            heading = f"## `{source_file.name}`"
+            if source_file.stem in file_metadata:
+                heading += f" — {html.escape(source_title)}"
             page.extend(
                 [
                     f'<a id="{source_anchor(source_file)}"></a>\n\n',
-                    f"## `{source_file.name}`\n\n",
-                    source_explanation(source_file, title, metadata),
+                    f"{heading}\n\n",
+                    source_explanation(source_file, source_title, source_metadata),
                     f"[開啟原始檔]({source_link}){{ .source-download }}\n\n",
                     f"````{language}\n{source_text}\n````\n\n",
                 ]
