@@ -1,6 +1,3 @@
-# this method is dumb and um but it work
-# cuz this approach is too slow you will only get 40%
-
 n,m = [int(x) for x in input().split()]
 approach = [int(x) for x in input().split()]
 ans = 0
