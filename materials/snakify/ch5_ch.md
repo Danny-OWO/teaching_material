@@ -47,7 +47,33 @@ string s = "abcdef";
 cout << s.substr(2, 3);  // cde
 ```
 
-`substr(起點, 長度)` 會取出一段新字串。
+`substr(起點, 長度)` 會取出一段新字串。第二個參數是「長度」，不是結束位置。
+
+```cpp
+string s = "abcdef";
+
+cout << s.substr(1, 3) << '\n';  // bcd：從索引 1 開始，取 3 個字元
+cout << s.substr(3) << '\n';     // def：省略長度時，一路取到字串結尾
+cout << s.substr(4, 100) << '\n'; // ef：長度超過尾端時，只取到結尾
+```
+
+`substr` 不會修改原本的字串，而是回傳一個新的 `string`：
+
+```cpp
+string s = "computer";
+string part = s.substr(0, 3);
+
+cout << part << '\n';  // com
+cout << s << '\n';     // computer，原字串不變
+```
+
+起點可以等於 `s.size()`，此時會得到空字串；但若起點大於 `s.size()`，程式會丟出 `out_of_range` 例外。
+
+```cpp
+string s = "cat";
+cout << s.substr(s.size());  // 空字串，合法
+// cout << s.substr(4);      // 錯誤：起點超出範圍
+```
 
 ## 4. 尋找文字
 
