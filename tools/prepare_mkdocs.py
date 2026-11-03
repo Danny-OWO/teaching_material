@@ -72,6 +72,14 @@ def display_name(directory_name: str) -> str:
     return DISPLAY_NAMES.get(directory_name, directory_name.replace("_", " "))
 
 
+def natural_sort_key(value: str | Path) -> tuple:
+    """Sort embedded numbers numerically, so chapter 10 follows chapter 9."""
+    return tuple(
+        int(part) if part.isdigit() else part.casefold()
+        for part in re.split(r"(\d+)", str(value))
+    )
+
+
 def normalize_markdown_tables(path: Path) -> None:
     """Normalize Docsify-tolerated Markdown syntax in the isolated build copy."""
     text = path.read_text(encoding="utf-8")
@@ -317,7 +325,10 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
     destination_root = DESTINATION / directory_name
     markdown_files = sorted(
         source_root.glob("*.md"),
-        key=lambda path: (not path.name.lower().startswith("learning route"), path.name.lower()),
+        key=lambda path: (
+            not path.name.lower().startswith("learning route"),
+            natural_sort_key(path.name),
+        ),
     )
     source_files = sorted(
         (path for path in source_root.rglob("*") if path.suffix.lower() in SOURCE_SUFFIXES),
@@ -387,11 +398,13 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
                 [
                     f'  <a class="source-card" href="{quote(markdown_file.stem)}/" data-source-search="{search_text}">\n',
                     f'    <strong>{html.escape(title)}</strong>\n',
-                    f'    <span class="lesson-filename">{html.escape(markdown_file.name)}</span>\n',
                     "  </a>\n",
                 ]
             )
-        overview.extend(["</div>\n\n", "## 程式與題目\n\n"])
+        source_section_title = "題目與解答" if has_problem_notes else "練習與參考解答"
+        overview.extend(["</div>\n\n", f"## {source_section_title}\n\n"])
+    elif has_problem_notes:
+        overview.append("## 題目與解答\n\n")
 
     entries: list[dict[str, str]] = []
     for source_directory in groups:
@@ -495,14 +508,28 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
                     f' data-problem-route-order="{entry["route_order"]}"'
                     f' data-problem-title="{entry["sort_title"]}"'
                 )
-            overview.extend(
-                [
-                    f'  <a class="source-card" href="{entry["target"]}" data-source-search="{entry["search"]}"{data_attributes}>\n',
-                    f'    <strong>{entry["label"]}</strong>\n',
-                    (f'    {entry["details"]}\n' if entry["details"] else f'    <span class="source-languages">{entry["languages"]}</span>\n'),
-                    "  </a>\n",
-                ]
-            )
+            if has_problem_notes:
+                overview.extend(
+                    [
+                        f'  <article class="source-card problem-card" data-source-search="{entry["search"]}"{data_attributes}>\n',
+                        f'    <a class="problem-card__title" href="{entry["target"]}"><strong>{entry["label"]}</strong></a>\n',
+                        f'    {entry["details"]}\n',
+                        '    <span class="problem-card__actions">\n',
+                        f'      <a href="{entry["target"]}#problem">看題目與解析</a>\n',
+                        f'      <a href="{entry["target"]}#solution">看解答程式</a>\n',
+                        '    </span>\n',
+                        "  </article>\n",
+                    ]
+                )
+            else:
+                overview.extend(
+                    [
+                        f'  <a class="source-card" href="{entry["target"]}" data-source-search="{entry["search"]}"{data_attributes}>\n',
+                        f'    <strong>{entry["label"]}</strong>\n',
+                        f'    <span class="source-languages">{entry["languages"]}</span>\n',
+                        "  </a>\n",
+                    ]
+                )
         overview.append("</div>\n\n")
 
     overview.append('<p class="source-empty" hidden>找不到符合的題目。</p>\n')
@@ -521,6 +548,7 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
         back_link = "../index.md" if is_root else "../" * len(relative_directory.parts) + "index.md"
         page = [f"# {title}\n\n", f"[← 回到程式索引]({back_link})\n\n"]
         if metadata:
+            page.extend(['<a id="problem"></a>\n\n', "## 題目與解析\n\n"])
             difficulty = metadata["difficulty"]
             complexity = metadata.get("complexity", {})
             complexity_items = "".join(
@@ -546,7 +574,9 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
             key=lambda path: path.relative_to(source_directory).as_posix().lower(),
         )
         if image_files:
-            page.extend(["## 題目圖片與解題筆記\n\n", '<div class="solution-images">\n'])
+            if not metadata:
+                page.extend(['<a id="problem"></a>\n\n', "## 題目\n\n"])
+            page.extend(["### 題目圖片與解題筆記\n\n", '<div class="solution-images">\n'])
             for image_file in image_files:
                 relative_image = image_file.relative_to(source_directory).as_posix()
                 image_url = quote(relative_image)
@@ -561,6 +591,7 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
                     ]
                 )
             page.extend(["</div>\n\n"])
+        page.extend(['<a id="solution"></a>\n\n', "## 解答程式\n\n"])
         for source_file in files:
             copied_file = destination_root / source_file.relative_to(source_root)
             source_link = f"../{source_file.name}" if is_root else source_file.name
@@ -568,7 +599,7 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
             source_text = copied_file.read_text(encoding="utf-8", errors="replace").rstrip()
             source_metadata = file_metadata.get(source_file.stem, metadata)
             source_title = str(source_metadata.get("title", title))
-            heading = f"## `{source_file.name}`"
+            heading = f"### `{source_file.name}`"
             if source_file.stem in file_metadata:
                 heading += f" — {html.escape(source_title)}"
             page.extend(
@@ -589,7 +620,10 @@ def write_markdown_index(directory_name: str) -> None:
     destination_root = DESTINATION / directory_name
     markdown_files = sorted(
         source_root.glob("*.md"),
-        key=lambda path: (not path.name.lower().startswith("learning route"), path.name.lower()),
+        key=lambda path: (
+            not path.name.lower().startswith("learning route"),
+            natural_sort_key(path.name),
+        ),
     )
 
     overview = [
@@ -611,7 +645,6 @@ def write_markdown_index(directory_name: str) -> None:
             [
                 f'  <a class="source-card" href="{target}" data-source-search="{search_text}">\n',
                 f'    <strong>{html.escape(title)}</strong>\n',
-                f'    <span class="lesson-filename">{html.escape(markdown_file.name)}</span>\n',
                 "  </a>\n",
             ]
         )
@@ -839,7 +872,10 @@ def write_generated_config() -> None:
         section_title = display_name(directory_name)
         markdown_files = sorted(
             (MATERIALS / directory_name).glob("*.md"),
-            key=lambda path: (not path.name.lower().startswith("learning route"), path.name.lower()),
+            key=lambda path: (
+                not path.name.lower().startswith("learning route"),
+                natural_sort_key(path.name),
+            ),
         )
         source_files = [
             path for path in material_directory.rglob("*")
@@ -860,7 +896,10 @@ def write_generated_config() -> None:
                 if directory.is_dir()
                 and any(path.suffix.lower() in SOURCE_SUFFIXES for path in directory.glob("*"))
             ),
-            key=lambda path: source_directory_sort_key(path, material_directory),
+            key=lambda path: (
+                source_directory_sort_key(path, material_directory)[0],
+                natural_sort_key(path.relative_to(material_directory).as_posix()),
+            ),
         )
         index_label = "教材與程式索引" if markdown_files else ("程式索引" if source_files else "檔案索引")
         nav.append(f"      - {json.dumps(index_label, ensure_ascii=False)}: {json.dumps(f'{directory_name}/index.md', ensure_ascii=False)}")

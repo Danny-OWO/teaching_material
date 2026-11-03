@@ -542,13 +542,6 @@ body::before {
   line-height: 1.5;
 }
 
-.md-typeset .lesson-filename {
-  color: #91a3ad;
-  font-family: var(--md-code-font);
-  font-size: 0.62rem;
-  overflow-wrap: anywhere;
-}
-
 /* Homepage profile and learning-area cards. */
 .md-typeset .profile-hero {
   display: grid;
@@ -601,6 +594,52 @@ body::before {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.8rem;
+}
+
+.md-typeset .home-links--primary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 2rem;
+}
+
+.md-typeset .home-links--primary > a {
+  min-height: 7.5rem;
+  justify-content: center;
+  background:
+    linear-gradient(135deg, rgba(103, 212, 232, 0.16), transparent 62%),
+    rgba(8, 13, 20, 0.9);
+  border-color: rgba(103, 212, 232, 0.48);
+}
+
+.md-typeset .home-links--primary strong {
+  font-size: 1rem;
+}
+
+.md-typeset a.problem-card__title {
+  color: #eaf7fa;
+  text-decoration: none;
+}
+
+.md-typeset .problem-card__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.md-typeset .problem-card__actions a {
+  padding: 0.42rem 0.55rem;
+  color: #c8edf4;
+  background: rgba(103, 212, 232, 0.08);
+  border: 1px solid rgba(103, 212, 232, 0.28);
+  border-radius: 0.4rem;
+  font-size: 0.64rem;
+  text-align: center;
+  text-decoration: none;
+}
+
+.md-typeset .problem-card__actions a:hover,
+.md-typeset .problem-card__actions a:focus-visible {
+  color: #071016;
+  background: #8be4f2;
 }
 
 .md-typeset .home-links > a {
@@ -664,8 +703,35 @@ body::before {
     text-align: left;
   }
 
+  .md-typeset .home-links--primary {
+    grid-template-columns: 1fr;
+  }
+
   .md-typeset .binary-search-legend,
   .md-typeset .binary-state {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 76.234375em) {
+  .md-nav--primary,
+  .md-nav--secondary {
+    background: #0b1119;
+  }
+
+  .md-nav--primary .md-nav__title,
+  .md-nav--secondary .md-nav__title {
+    background: #111923 !important;
+  }
+
+  .md-nav__link {
+    align-items: flex-start;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media screen and (max-width: 29.984375em) {
+  .md-typeset .problem-card__actions {
     grid-template-columns: 1fr;
   }
 }

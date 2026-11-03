@@ -30,6 +30,16 @@ class FrontmatterTests(unittest.TestCase):
                 prepare_mkdocs.read_frontmatter(note)
 
 
+class NaturalSortTests(unittest.TestCase):
+    def test_chapter_numbers_are_sorted_numerically(self):
+        chapters = ["ch10_ch.md", "ch2_ch.md", "ch11_ch.md", "ch1_ch.md"]
+
+        self.assertEqual(
+            sorted(chapters, key=prepare_mkdocs.natural_sort_key),
+            ["ch1_ch.md", "ch2_ch.md", "ch10_ch.md", "ch11_ch.md"],
+        )
+
+
 class ProblemMetadataTests(unittest.TestCase):
     def write_problem(self, temporary_directory, frontmatter):
         problem_directory = Path(temporary_directory) / "problem"
@@ -393,7 +403,7 @@ Directory notes.
         self.assertIn('<a id="source-101-py"></a>', page)
         self.assertIn("[開啟原始檔](101.py){ .source-download }", page)
 
-    def test_directory_without_manifest_keeps_existing_source_page_output(self):
+    def test_directory_without_manifest_places_code_in_solution_section(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             page = self.make_page(
                 Path(temporary_directory), {"101.py": "print(1)\n"}
@@ -402,8 +412,10 @@ Directory notes.
                 page,
                 "# chapter\n\n"
                 "[← 回到程式索引](../index.md)\n\n"
+                '<a id="solution"></a>\n\n'
+                "## 解答程式\n\n"
                 '<a id="source-101-py"></a>\n\n'
-                "## `101.py`\n\n"
+                "### `101.py`\n\n"
                 + prepare_mkdocs.source_explanation(
                     Path(temporary_directory) / "materials" / "TQC" / "chapter" / "101.py",
                     "chapter",
@@ -486,6 +498,8 @@ Repeat once per input.
                 encoding="utf-8"
             )
             self.assertIn("# Fixture Challenge", problem_page)
+            self.assertIn("## 題目與解析", problem_page)
+            self.assertIn("## 解答程式", problem_page)
             self.assertIn("Repeat once per input.", problem_page)
             self.assertIn("for value in range(3):", problem_page)
 
@@ -493,6 +507,7 @@ Repeat once per input.
             self.assertIn('  - "首頁": "index.md"', config)
             self.assertIn('  - "程式標籤搜尋": "programs/index.md"', config)
             self.assertIn('"Fixture Challenge": "Problems/sample/index.md"', config)
+            self.assertNotIn("intro.md</span>", lesson_index)
             self.assertTrue((destination / "assets" / "fixture.txt").is_file())
 
 

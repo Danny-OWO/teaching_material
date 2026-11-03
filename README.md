@@ -16,7 +16,22 @@
   </div>
 </div>
 
-## 從這裡開始
+## 第一次來？從這裡開始
+
+先選你的目標，不用一口氣吞完整座教材山。想準備檢定就從 APCS 課程首頁開始；想把語言基礎打穩，就沿著 C++ 路線往下走。
+
+<div class="home-links home-links--primary">
+  <a href="APCS/">
+    <strong>🎯 準備 APCS</strong>
+    <span>從課程首頁查看學習順序、核心教材與練習方向。</span>
+  </a>
+  <a href="APCS/learning%20route%20-%20C++/">
+    <strong>⚙️ 學習 C++</strong>
+    <span>從輸入輸出一路走到資料結構與基礎演算法。</span>
+  </a>
+</div>
+
+## 找教材與題目
 
 <div class="home-links">
   <a href="programs/">
@@ -26,10 +41,6 @@
   <a href="leetcode/">
     <strong>LeetCode 題解</strong>
     <span>用標籤、解題模式與互動圖解整理我實際寫過的題目。</span>
-  </a>
-  <a href="APCS/APCS考試內容/">
-    <strong>APCS 課程</strong>
-    <span>資料結構、演算法與 APCS 準備筆記。</span>
   </a>
   <a href="ZeroJudge/">
     <strong>ZeroJudge 程式</strong>
