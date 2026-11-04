@@ -36,7 +36,37 @@ char first = s[0];
 s[0] = 'h';
 ```
 
-## 3. 連接與子字串
+`std::string` 會自己記錄長度，平常不需要手動在結尾加入 `\0`。`\0` 主要會在之後接觸 C-style string 時用到。
+
+## 3. 使用迴圈走訪
+
+需要索引時，使用一般的 `for`：
+
+```cpp
+for (int i = 0; i < s.size(); i++) {
+    cout << i << ' ' << s[i] << '\n';
+}
+```
+
+只需要每個字元時，可以使用範圍式迴圈：
+
+```cpp
+for (char c : s) {
+    cout << c << '\n';
+}
+```
+
+修改字元時可以透過索引：
+
+```cpp
+for (int i = 0; i < s.size(); i++) {
+    if (s[i] == 'a') {
+        s[i] = 'A';
+    }
+}
+```
+
+## 4. 連接與子字串
 
 ```cpp
 string first = "good";
@@ -47,81 +77,22 @@ string s = "abcdef";
 cout << s.substr(2, 3);  // cde
 ```
 
-`substr(起點, 長度)` 會取出一段新字串。第二個參數是「長度」，不是結束位置。
+`substr(起點, 長度)` 會取出一個新字串。第二個參數是「長度」，不是結束位置。
 
-```cpp
-string s = "abcdef";
+## 5. 尋找、計數與反轉
 
-cout << s.substr(1, 3) << '\n';  // bcd：從索引 1 開始，取 3 個字元
-cout << s.substr(3) << '\n';     // def：省略長度時，一路取到字串結尾
-cout << s.substr(4, 100) << '\n'; // ef：長度超過尾端時，只取到結尾
-```
-
-`substr` 不會修改原本的字串，而是回傳一個新的 `string`：
-
-```cpp
-string s = "computer";
-string part = s.substr(0, 3);
-
-cout << part << '\n';  // com
-cout << s << '\n';     // computer，原字串不變
-```
-
-起點可以等於 `s.size()`，此時會得到空字串；但若起點大於 `s.size()`，程式會丟出 `out_of_range` 例外。
-
-```cpp
-string s = "cat";
-cout << s.substr(s.size());  // 空字串，合法
-// cout << s.substr(4);      // 錯誤：起點超出範圍
-```
-
-## 4. 尋找文字
+`find` 找不到內容時，會回傳 `string::npos`：
 
 ```cpp
 string s = "abracadabra";
-size_t pos = s.find("cad");
+auto pos = s.find("cad");
 
 if (pos != string::npos) {
     cout << pos << '\n';
 }
 ```
 
-找不到時，`find` 會回傳 `string::npos`。
-
-字串也能使用迴圈逐字處理：
-
-```cpp
-for (char c : s) {
-    cout << c << '\n';
-}
-```
-
-## 5. 常用字串操作
-
-| 寫法 | 功能 |
-|---|---|
-| `s.empty()` | 檢查字串是否為空 |
-| `s.front()` | 第一個字元 |
-| `s.back()` | 最後一個字元 |
-| `s += text` | 在尾端接上文字 |
-| `s.insert(pos, text)` | 在 `pos` 插入文字 |
-| `s.erase(pos, length)` | 從 `pos` 刪除指定長度 |
-| `s.replace(pos, length, text)` | 將一段文字換掉 |
-| `s.find(text)` | 尋找第一次出現的位置 |
-| `s.rfind(text)` | 尋找最後一次出現的位置 |
-
-```cpp
-string s = "I like cats";
-s.replace(7, 4, "dogs");  // I like dogs
-s.erase(1, 1);             // Ilike dogs
-s.insert(1, " ");         // I like dogs
-```
-
-這些函式的 `length` 是「字元數量」，不是結束位置。
-
-## 6. 反轉與計數
-
-引入 `<algorithm>` 後，可以使用 `reverse` 與 `count`：
+引入 `<algorithm>` 後，可以使用 `count` 與 `reverse`：
 
 ```cpp
 #include <algorithm>
@@ -133,33 +104,11 @@ reverse(s.begin(), s.end());
 cout << s << '\n';  // ananab
 ```
 
-只反轉一部分時，結束位置不包含在範圍內：
+常用的基本操作還有：
 
-```cpp
-reverse(s.begin() + left, s.begin() + right);
-```
-
-這會反轉索引 `[left, right)`。
-
-## 7. 逐字修改
-
-需要修改原字串時，使用參考 `char&`：
-
-```cpp
-for (char& c : s) {
-    if (c == 'a') {
-        c = 'A';
-    }
-}
-```
-
-若要刪除每隔固定位置的字元，建立一個新字串通常最簡單：
-
-```cpp
-string result;
-for (int i = 0; i < s.size(); i++) {
-    if ((i + 1) % 3 != 0) {
-        result += s[i];
-    }
-}
-```
+| 寫法 | 功能 |
+|---|---|
+| `s.empty()` | 檢查字串是否為空 |
+| `s.front()` | 第一個字元 |
+| `s.back()` | 最後一個字元 |
+| `s += text` | 在尾端接上文字 |

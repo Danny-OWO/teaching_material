@@ -1,4 +1,4 @@
-# 第 8 章：函式與遞迴
+# 第 8 章：函式與基礎遞迴
 
 函式把一段工作取名並重複使用，讓程式更容易閱讀。
 
@@ -58,23 +58,7 @@ int length(const string& text)
 }
 ```
 
-## 4. 遞迴
-
-函式可以呼叫自己，這稱為遞迴。
-
-```cpp
-long long factorial(int n)
-{
-    if (n == 0) {
-        return 1;
-    }
-    return n * factorial(n - 1);
-}
-```
-
-遞迴一定要有停止條件。若呼叫層數太深，可能耗盡記憶體；能用簡單迴圈完成時，迴圈通常更合適。
-
-## 5. 將 `vector` 傳入函式
+## 4. 將 `vector` 傳入函式
 
 只讀取資料時，使用 `const` 參考：
 
@@ -100,28 +84,25 @@ void doubleAll(vector<int>& values)
 }
 ```
 
-## 6. 遞迴的組成
+## 5. 遞迴（先認識即可）
 
-每個遞迴函式都要回答兩個問題：
-
-1. 最簡單的情況如何直接得到答案？
-2. 如何把問題縮小，讓它逐步接近最簡單的情況？
-
-例如快速計算整數次方：
+函式可以呼叫自己，這稱為遞迴：
 
 ```cpp
-long long power(long long a, int n)
+void countdown(int n)
 {
     if (n == 0) {
-        return 1;
+        return;
     }
 
-    long long half = power(a, n / 2);
-    if (n % 2 == 0) {
-        return half * half;
-    }
-    return half * half * a;
+    cout << n << '\n';
+    countdown(n - 1);
 }
 ```
 
-每次把 `n` 除以 `2`，問題會快速縮小。
+遞迴只要先看懂兩件事：
+
+1. `n == 0` 是停止條件。
+2. 每次呼叫都把 `n` 減少，問題會逐步接近停止條件。
+
+這個階段不需要用遞迴解複雜問題；之後進入 APCS 課程時再深入。

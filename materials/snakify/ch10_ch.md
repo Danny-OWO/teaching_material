@@ -65,45 +65,5 @@ cout << seen.size() << '\n';
 | `s.empty()` | 是否為空 |
 | `s.clear()` | 刪除所有元素 |
 
-`insert` 也會告訴我們是否真的加入了新元素：
 
-```cpp
-auto result = seen.insert(x);
-if (result.second) {
-    cout << "first time\n";
-} else {
-    cout << "seen before\n";
-}
-```
-
-## 6. 聯集、交集與差集
-
-為了保持寫法簡單，可以用迴圈完成集合運算。
-
-```cpp
-set<int> a = {1, 2, 3};
-set<int> b = {2, 3, 4};
-
-set<int> unionSet = a;
-for (int x : b) {
-    unionSet.insert(x);
-}
-
-set<int> intersection;
-for (int x : a) {
-    if (b.count(x)) {
-        intersection.insert(x);
-    }
-}
-
-set<int> difference;
-for (int x : a) {
-    if (!b.count(x)) {
-        difference.insert(x);
-    }
-}
-```
-
-- 聯集：至少出現在其中一個集合。
-- 交集：同時出現在兩個集合。
-- 差集：出現在 `a`，但沒有出現在 `b`。
+不需要自己用 `vector` 模擬集合。`set` 已經負責去除重複、排序和查找；這一章先學會使用它即可。

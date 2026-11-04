@@ -94,21 +94,3 @@ for (int i = 0; i < n; i++) {
 ```
 
 每一列都交換相同的兩個欄位置。
-
-## 7. 矩陣乘法
-
-若 `a` 是 `n × m`，`b` 是 `m × k`，結果會是 `n × k`：
-
-```cpp
-vector<vector<long long>> result(n, vector<long long>(k, 0));
-
-for (int i = 0; i < n; i++) {
-    for (int j = 0; j < k; j++) {
-        for (int t = 0; t < m; t++) {
-            result[i][j] += 1LL * a[i][t] * b[t][j];
-        }
-    }
-}
-```
-
-三個索引分別表示結果的列、結果的欄，以及相乘後加總的位置。

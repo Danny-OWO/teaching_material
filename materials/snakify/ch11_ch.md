@@ -67,6 +67,7 @@ frequency.erase("apple");
 | `data.find(key)` | 尋找鍵的位置 |
 | `data.erase(key)` | 刪除一組資料 |
 | `data.size()` | 資料筆數 |
+| `data.empty()` | 是否沒有資料 |
 | `data.clear()` | 刪除所有資料 |
 
 若 `key` 不存在，`at(key)` 會丟出 `out_of_range`，因此通常要先用 `count` 或 `find` 檢查。
@@ -103,19 +104,3 @@ cout << bestWord << ' ' << bestCount << '\n';
 ```
 
 因為 `map` 按照鍵排序，次數相同時，這個寫法會保留字典順序較前面的鍵。
-
-## 7. 值也可以是容器
-
-一個鍵可能對應多個值，例如國家與城市、使用者與權限：
-
-```cpp
-map<string, set<string>> cities;
-cities["Japan"].insert("Tokyo");
-cities["Japan"].insert("Osaka");
-
-for (const string& city : cities["Japan"]) {
-    cout << city << '\n';
-}
-```
-
-選擇資料結構時，先確認題目需要的是單一值、計數，還是一組不重複的值。
