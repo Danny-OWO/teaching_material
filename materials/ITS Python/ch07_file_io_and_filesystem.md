@@ -1,6 +1,6 @@
 # 第 7 章：File I/O 與檔案系統
 
-這章是最容易「以為會、其實只會背 `open()`」的地方。官方逐字列出 open、close、read、write、append、檢查存在、刪除與 `with` statement；2025 模組領域又要求使用 `io`、`os`、`os.path` 處理檔案。
+本章整理 `open`、`close`、`read`、`write`、append mode、檔案存在檢查、刪除及 `with` statement，並介紹 `io`、`os` 與 `os.path`。
 
 ## 1. `open()` 與模式
 
@@ -19,7 +19,7 @@ file.close()
 | `b` | binary 修飾 | 依主模式 | 讀寫 bytes |
 | `+` | 讀寫修飾 | 依主模式 | 依主模式 |
 
-`"w"` 會截斷既有檔案，是考題與真實世界共同的地雷。
+`"w"` 會先清空既有檔案內容。
 
 ## 2. 優先使用 `with`
 
@@ -31,7 +31,7 @@ with open("notes.txt", "r", encoding="utf-8") as file:
 print(file.closed)  # True
 ```
 
-手動 `close()` 屬於考綱，但新程式通常應使用 context manager。
+`close()` 可手動關閉檔案；`with` 能在離開 block 時自動關閉。
 
 ## 3. 讀取方法
 
@@ -99,7 +99,7 @@ folder = os.path.dirname(path)
 name = os.path.basename(path)
 ```
 
-不要用 `folder + "/" + name` 硬接路徑；不同作業系統的分隔方式不同。
+`os.path.join()` 會依作業系統使用正確的路徑格式。
 
 ## 7. 刪除檔案
 
@@ -111,11 +111,11 @@ if os.path.isfile(path):
     os.remove(path)
 ```
 
-刪除不存在的檔案會發生 `FileNotFoundError`；把目錄交給 `os.remove()` 也會失敗。刪除是不可逆操作，真實程式應確認目標，不要拿使用者輸入直接開刀。
+刪除不存在的檔案會發生 `FileNotFoundError`；`os.remove()` 不能用來刪除目錄。刪除前應確認目標路徑。
 
 ## 8. `io` module
 
-`io` 定義 Python 的 stream 類別。考試較可能要求辨認或使用記憶體中的文字 stream：
+`io` 定義 Python 的 stream 類別。`StringIO` 可建立記憶體中的文字 stream：
 
 ```python
 import io

@@ -28,7 +28,7 @@ if logged_in:
         print("admin panel")
 ```
 
-De Morgan's laws 很適合考條件等價：
+De Morgan's laws 可用來改寫等價條件：
 
 ```python
 not (a and b) == ((not a) or (not b))
@@ -97,7 +97,7 @@ def future_feature():
     pass
 ```
 
-`continue` 不是「離開迴圈」，`pass` 也不是「跳過本輪」。三者混用是典型選擇題陷阱。
+`continue` 跳過本輪；`break` 結束迴圈；`pass` 不執行任何動作。
 
 ## 7. 巢狀迴圈
 
@@ -111,7 +111,7 @@ for row in range(2):
 
 ## 8. Loop `else`
 
-官方沒有逐字列出，但 Python 程式閱讀可能遇到：
+迴圈也可以搭配 `else`：
 
 ```python
 target = 7

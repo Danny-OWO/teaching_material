@@ -11,7 +11,7 @@ profile = {"name": "Lin", "age": 18}  # dict：key 對應 value
 tags = {"python", "exam"}          # set：不重複、無索引
 ```
 
-官方主要點名 list，但「construct data structures」表示你至少要能讀懂上述常見結構。
+官方主要點名 list；「construct data structures」亦涵蓋常見資料結構的建立與讀取。
 
 ## 2. List 索引與切片
 
@@ -40,7 +40,7 @@ items.extend([4, 5])    # 把多個元素接到原 list
 merged = items + [6, 7] # 建立新 list
 ```
 
-經典陷阱：
+`append()` 與 `extend()` 的差異：
 
 ```python
 items.append([4, 5])  # 加入一個巢狀 list
@@ -119,7 +119,7 @@ b[0].append(99)
 print(a)  # [[1, 99], [2]]
 ```
 
-## 8. Tuple、dict、set 最低限度
+## 8. Tuple、dict 與 set
 
 ```python
 point = (3, 4)
@@ -140,14 +140,13 @@ seen.discard(99)      # 不存在也不報錯
 
 ## 9. List comprehension
 
-雖然官方沒有逐字點名，但 lab 與程式閱讀可能出現：
+List comprehension 可用一個 expression 建立 list：
 
 ```python
 squares = [x * x for x in range(5)]
 evens = [x for x in range(10) if x % 2 == 0]
 ```
 
-先求讀得懂，不必為了炫技把三層迴圈壓成一行。
 
 ## 10. 本章考點檢核與練習
 

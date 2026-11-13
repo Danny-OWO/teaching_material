@@ -33,7 +33,7 @@ print(10 / 0)          # ZeroDivisionError
 average = sum(scores) / (len(scores) - 1)
 ```
 
-Logic error 最難抓，因為電腦很配合地把錯誤想法執行完了。
+Logic error 不一定產生 exception，需比對實際結果與預期結果。
 
 ## 2. 讀 traceback
 
@@ -181,7 +181,7 @@ class TestScores(unittest.TestCase):
 - 能使用 `raise` 表達不合法狀態。
 - 能寫 `unittest.TestCase`，並使用官方點名的五個 assert methods。
 
-練習：為第 7 章的 `read_scores()` 寫測試，涵蓋正常資料、不存在檔案、格式錯誤三種情況。不要只測 happy path；只測晴天的雨傘，可信度大概跟裝飾品差不多。
+練習：為第 7 章的 `read_scores()` 寫測試，涵蓋正常資料、不存在檔案、格式錯誤三種情況。
 
 ## 11. 來源
 

@@ -1,6 +1,6 @@
-# 第 5 章：函式、文件與程式結構
+# 第 5 章：函式、Documentation 與程式結構
 
-官方第 4 領域同時檢查「程式能跑」與「程式是否可理解」：縮排、空白、註解、docstring、`pydoc`、函式簽名、預設值與回傳值都在範圍內。
+本章整理縮排、空白、註解、docstring、`help()`、`pydoc`、函式簽名、預設值與回傳值。
 
 ## 1. 定義與呼叫函式
 
@@ -76,11 +76,11 @@ def calculate(price):
     return price * rate + fee
 ```
 
-函式內指定的名稱預設是 local。考題若同時出現同名 global/local 變數，要依 scope 追蹤，不要憑視覺猜。
+函式內指定的名稱預設是 local。同名的 global 與 local 變數屬於不同 scope。
 
 ## 5. Call signature 與 `pass`
 
-`calculate(price, tax=0.05)` 的 signature 告訴你函式名稱、parameter 順序與預設值。
+`calculate(price, tax=0.05)` 的 signature 包含函式名稱、parameter 順序與預設值。
 
 ```python
 def not_implemented_yet(value):
@@ -100,9 +100,9 @@ def absolute(value):
     return value
 ```
 
-空白不只為了好看。錯誤縮排可能造成 `IndentationError`，也可能合法但邏輯錯誤，後者更陰險。
+錯誤縮排可能造成 `IndentationError`，也可能改變程式邏輯。
 
-## 7. Comment 與 docstring
+## 7. Comment、docstring 與 `help()`
 
 ```python
 def celsius_to_fahrenheit(celsius):
@@ -110,30 +110,35 @@ def celsius_to_fahrenheit(celsius):
     return celsius * 9 / 5 + 32  # conversion formula
 ```
 
-- `# comment` 解釋某段實作或原因。
-- docstring 是 module、class 或 function body 的第一個字串 literal，用於說明公開介面。
-- `help(celsius_to_fahrenheit)` 會使用 docstring。
-
-不要寫廢話註解：
+| 項目 | 位置與用途 |
+|---|---|
+| Comment | 以 `#` 開始，用來解釋實作原因或限制 |
+| Module docstring | module 第一個字串 literal，說明整個檔案 |
+| Function docstring | function body 第一個字串 literal，說明參數、行為與回傳 |
+| Class docstring | class body 第一個字串 literal，說明類別用途 |
+| `obj.__doc__` | 取得物件的 docstring |
+| `help(obj)` | 顯示由 signature 與 docstring 組成的文件 |
 
 ```python
-count += 1  # count 加一（沒有提供新資訊）
+print(celsius_to_fahrenheit.__doc__)
+help(celsius_to_fahrenheit)
 ```
-
-真正有價值的註解說明「為什麼」，或指出不直觀的限制。
 
 ## 8. `pydoc`
 
-官方明確點名使用 `pydoc` 產生文件。
+`pydoc` 可從 module 結構、名稱、signature 與 docstring 產生文件。
 
 ```text
 python -m pydoc my_module
 python -m pydoc -w my_module
+python -m pydoc -b
 ```
 
-- 第一行在終端顯示 module 文件。
-- `-w` 產生 HTML 文件。
-- `pydoc` 主要從 module 結構、名稱、signature 與 docstring 取得內容。
+| 指令 | 功用 |
+|---|---|
+| `python -m pydoc my_module` | 在 terminal 顯示 module 文件 |
+| `python -m pydoc -w my_module` | 產生 HTML 文件 |
+| `python -m pydoc -b` | 啟動本機文件瀏覽器 |
 
 ## 9. 結構化小程式
 
@@ -157,7 +162,7 @@ if __name__ == "__main__":
     main()
 ```
 
-`__name__` guard 會在第 9 章完整解釋。這裡先看到好結構：輸入、邏輯、輸出不是全部揉成一團。
+`__name__` guard 的規則見第 9 章。函式可將輸入、處理與輸出分開。
 
 ## 10. 本章考點檢核與練習
 

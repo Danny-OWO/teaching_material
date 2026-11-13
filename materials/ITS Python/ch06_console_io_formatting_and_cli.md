@@ -133,7 +133,7 @@ sys.stderr.write("error message\n")
 line = sys.stdin.readline()
 ```
 
-一般題目使用 `input()` 與 `print()` 即可，但 `sys.stdin`、`sys.stdout`、`sys.stderr` 能幫你理解 console I/O 與 `sys` module 的關係。
+一般 console I/O 使用 `input()` 與 `print()`；`sys.stdin`、`sys.stdout`、`sys.stderr` 則提供對應的標準 stream。
 
 ## 9. 本章考點檢核與練習
 
