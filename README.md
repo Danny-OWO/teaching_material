@@ -18,7 +18,7 @@
 
 ## 第一次來？從這裡開始
 
-先選你的目標，不用一口氣吞完整座教材山。想準備檢定就從 APCS 課程首頁開始；想把語言基礎打穩，就沿著 C++ 路線往下走。
+先選你的目標，不用一口氣吞完整座教材山。想準備檢定可從 APCS 或 ITS Python 開始；想把語言基礎打穩，就沿著 C++ 路線往下走。
 
 <div class="home-links home-links--primary">
   <a href="APCS/">
@@ -28,6 +28,10 @@
   <a href="APCS/learning%20route%20-%20C++/">
     <strong>⚙️ 學習 C++</strong>
     <span>從輸入輸出一路走到資料結構與基礎演算法。</span>
+  </a>
+  <a href="ITS%20Python/">
+    <strong>🐍 準備 ITS Python</strong>
+    <span>依 2025 官方考綱整理的九章教材，涵蓋 File I/O、例外、測試與標準函式庫。</span>
   </a>
 </div>
 

@@ -24,6 +24,7 @@ DISPLAY_NAMES = {
     "APCS": "APCS 課程",
     "codecat": "CodeCat",
     "CSES_problem_set": "CSES Problem Set",
+    "ITS Python": "ITS Python 考試教材",
     "leetcode": "LeetCode",
     "TQC python": "TQC Python",
     "ZeroJudge": "ZeroJudge 題解",
