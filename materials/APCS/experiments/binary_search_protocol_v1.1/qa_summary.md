@@ -32,6 +32,8 @@ No required objective is left without teaching content or an assessment opportun
 ## Pedagogical and Communication Review
 
 - The phone-book story is followed by an explicit concept mapping and failure boundary.
+- The student-facing lesson stays in the original teacher's voice; it does not mention prompts, protocols, source-lesson revision or AI-to-author advice.
+- Pedagogical design commentary is kept in this QA record rather than spoken to students inside the lesson.
 - Worked examples precede implementation.
 - The closed-interval convention is used consistently throughout the hand-written algorithm.
 - Common failure modes are tied to counterexamples rather than merely listed.

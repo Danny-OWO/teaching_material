@@ -8,7 +8,7 @@
 - Scope: 精確值搜尋、閉區間不變量、找不到、邊界更新、重複值、lower/upper bound、複雜度與練習。
 - Exclusions: 二分答案、浮點二分、自訂 comparator、二元搜尋樹僅作概念區隔。
 - Languages: 語言無關概念、C++、Python。
-- Style: 沿用電話簿、Sam 與高松燈故事；幽默不得犧牲概念精確度。
+- Style: 沿用電話簿、Sam 與高松燈故事；幽默不得犧牲概念精確度。學生版必須以原作者本人授課的口吻書寫，不得出現 AI 對作者說話、評論原稿或解釋教材設計的後設語句。
 - Reference: `materials/APCS/binary_search.md`。
 - Output: 新增獨立 Markdown，不覆寫基準稿。
 - User approval: 2026-11-13；使用者確認沿用故事。
