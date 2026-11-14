@@ -392,7 +392,7 @@ class RepositoryCatalogCoverageTests(unittest.TestCase):
                 prepare_mkdocs.write_program_catalog()
 
             catalog = (destination / "programs" / "index.md").read_text(encoding="utf-8")
-            self.assertEqual(catalog.count('class="source-card program-row"'), 57)
+            self.assertEqual(catalog.count('class="source-card program-row"'), 90)
             for reading_signal in (
                 "input-output",
                 "loop",

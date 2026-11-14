@@ -26,6 +26,14 @@ topics:
   combinatorics: [combinations, 組合數學]
   subset-sum: [subset sum, 子集合和]
   amortized-analysis: [amortized, 均攤分析]
+  bit-manipulation: [bitwise, 位元運算]
+  dynamic-programming: [dynamic programming, dp, 動態規劃]
+  greedy: [greedy-algorithm, 貪心]
+  map: [maps, dictionary, 映射表]
+  multiset: [multisets, 多重集合]
+  number-theory: [number theory, 數論]
+  sliding-window: [sliding window, 滑動視窗]
+  two-pointers: [two pointers, 雙指標]
 
 patterns:
   adjacent-difference: []
@@ -63,6 +71,15 @@ patterns:
   unit-conversion: []
   validation-and-frequency: []
   weighted-prefix-selection: []
+  at-most-k-distinct: []
+  constructive: [constructive-algorithm]
+  interval-scheduling: []
+  local-update: []
+  longest-unique-window: []
+  maximum-subarray: [kadane-pattern]
+  median-minimum: []
+  position-array: []
+  predecessor-successor: []
 
 techniques:
   alignment-formatting: [alignment-specifier, 對齊格式指定符]
@@ -102,3 +119,5 @@ techniques:
   type-conversion: [casting, cast]
   upper-bound: [bisect-right]
   vertical-flip: []
+  kadane: [kadane-algorithm]
+  two-pointer-scan: []

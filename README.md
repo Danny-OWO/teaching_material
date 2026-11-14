@@ -38,6 +38,10 @@
 ## 找教材與題目
 
 <div class="home-links">
+  <a href="CSES_problem_set/">
+    <strong>CSES Problem Set</strong>
+    <span>35 題、50 份 C++ 學習紀錄，保留多版本演進並標示完成狀態與核心方法。</span>
+  </a>
   <a href="programs/">
     <strong>程式標籤搜尋</strong>
     <span>跨平台搜尋所有程式，搭配語言、來源與演算法標籤交叉篩選。</span>
