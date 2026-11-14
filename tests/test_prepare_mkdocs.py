@@ -287,6 +287,9 @@ Directory notes.
             self.assertIn('data-program-difficulty="hard"', catalog)
             self.assertIn('data-program-tags="graphs|breadth-first-search|queue"', catalog)
             self.assertIn("C++ / Python", catalog)
+            self.assertIn('<table class="program-table">', catalog)
+            self.assertIn('data-program-sort="title"', catalog)
+            self.assertIn('data-program-language="C++ / Python"', catalog)
 
     def test_catalog_keeps_different_stems_with_the_same_curated_title_separate(self):
         with tempfile.TemporaryDirectory() as temporary_directory:

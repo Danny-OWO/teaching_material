@@ -20,8 +20,11 @@ const initializeSourceFilter = () => {
   const programReset = root.querySelector("button[data-program-reset]");
   const programSelection = root.querySelector("[data-program-selection]");
   const programTagButtons = [...root.querySelectorAll("[data-program-tag]")];
+  const programSortButtons = [...root.querySelectorAll("[data-program-sort]")];
   const selectedProgramTags = new Set();
   let selectedLetter = "all";
+  let programSortKey = "title";
+  let programSortDirection = 1;
 
   if (!search || cards.length === 0 || search.dataset.filterReady === "true") return;
   search.dataset.filterReady = "true";
@@ -58,12 +61,24 @@ const initializeSourceFilter = () => {
     });
 
     if (programIndex) {
+      const difficultyOrder = { easy: 0, medium: 1, hard: 2, unrated: 3 };
       const sortedCards = [...cards].sort((left, right) => {
-        const leftTitle = normalize(left.dataset.programTitle ?? "");
-        const rightTitle = normalize(right.dataset.programTitle ?? "");
-        const leftStarts = queryTerms.some((term) => leftTitle.startsWith(term));
-        const rightStarts = queryTerms.some((term) => rightTitle.startsWith(term));
-        return Number(rightStarts) - Number(leftStarts) || leftTitle.localeCompare(rightTitle, "zh-Hant");
+        let comparison = 0;
+        if (programSortKey === "difficulty") {
+          comparison = (difficultyOrder[left.dataset.programDifficulty] ?? 4) -
+            (difficultyOrder[right.dataset.programDifficulty] ?? 4);
+        } else {
+          comparison = normalize(left.dataset[`program${programSortKey[0].toUpperCase()}${programSortKey.slice(1)}`] ?? "")
+            .localeCompare(
+              normalize(right.dataset[`program${programSortKey[0].toUpperCase()}${programSortKey.slice(1)}`] ?? ""),
+              "zh-Hant"
+            );
+        }
+        return comparison * programSortDirection ||
+          normalize(left.dataset.programTitle ?? "").localeCompare(
+            normalize(right.dataset.programTitle ?? ""),
+            "zh-Hant"
+          );
       });
       sortedCards.forEach((card) => programIndex.append(card));
     }
@@ -117,6 +132,26 @@ const initializeSourceFilter = () => {
   sortSelect?.addEventListener("change", update);
   programSource?.addEventListener("change", update);
   programDifficulty?.addEventListener("change", update);
+  programSortButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextKey = button.dataset.programSort;
+      if (programSortKey === nextKey) {
+        programSortDirection *= -1;
+      } else {
+        programSortKey = nextKey;
+        programSortDirection = 1;
+      }
+      programSortButtons.forEach((candidate) => {
+        const header = candidate.closest("th");
+        const active = candidate.dataset.programSort === programSortKey;
+        header?.setAttribute(
+          "aria-sort",
+          active ? (programSortDirection === 1 ? "ascending" : "descending") : "none"
+        );
+      });
+      update();
+    });
+  });
   programTagButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const tag = button.dataset.programTag;

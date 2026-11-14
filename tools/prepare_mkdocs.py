@@ -785,7 +785,7 @@ def write_program_catalog() -> None:
 
     page = [
         "# 程式標籤搜尋\n\n",
-        "搜尋題名、檔名或解題技巧，再用來源、難度與標籤縮小範圍。C++ 與 Python 解法合併為同一題。\n\n",
+        "搜尋題名、檔名或解題技巧，再用來源、難度與標籤縮小範圍；點欄位名稱可排序。C++ 與 Python 解法合併為同一題。\n\n",
         '<div class="program-catalog" data-program-catalog>\n',
         '<div class="program-toolbar">\n',
         '<label class="source-search program-search">\n',
@@ -832,7 +832,29 @@ def write_program_catalog() -> None:
             f'    <button class="tag-tone-{tone}" type="button" data-program-tag="{html.escape(tag, quote=True)}" aria-pressed="false">'
             f'{html.escape(tag)} <span>{count}</span></button>\n'
         )
-    page.extend(['  </div>\n', '</details>\n', '</section>\n\n', '<div class="program-results-heading">\n', '  <strong>搜尋結果</strong>\n', '  <p class="source-count" aria-live="polite"></p>\n', '</div>\n\n', '<div class="source-index program-index" data-program-index>\n'])
+    page.extend(
+        [
+            '  </div>\n',
+            '</details>\n',
+            '</section>\n\n',
+            '<div class="program-results-heading">\n',
+            '  <strong>搜尋結果</strong>\n',
+            '  <p class="source-count" aria-live="polite"></p>\n',
+            '</div>\n\n',
+            '<div class="program-table-wrap">\n',
+            '<table class="program-table">\n',
+            '  <thead>\n',
+            '    <tr>\n',
+            '      <th scope="col" aria-sort="ascending"><button type="button" data-program-sort="title">題目<span aria-hidden="true"></span></button></th>\n',
+            '      <th scope="col"><button type="button" data-program-sort="source">來源<span aria-hidden="true"></span></button></th>\n',
+            '      <th scope="col"><button type="button" data-program-sort="language">語言<span aria-hidden="true"></span></button></th>\n',
+            '      <th scope="col"><button type="button" data-program-sort="difficulty">難度<span aria-hidden="true"></span></button></th>\n',
+            '      <th scope="col">標籤</th>\n',
+            '    </tr>\n',
+            '  </thead>\n',
+            '  <tbody data-program-index>\n',
+        ]
+    )
     for entry in entries:
         tag_value = "|".join(entry["tags"])
         tag_markup = badges(entry["tags"][:4], "code-tag")
@@ -841,15 +863,16 @@ def write_program_catalog() -> None:
         difficulty_label = DIFFICULTY_LABELS.get(difficulty, "未標示")
         page.extend(
             [
-                f'  <a class="source-card program-card" href="{entry["href"]}" data-source-search="{html.escape(entry["search"], quote=True)}" data-program-title="{html.escape(entry["title"].lower(), quote=True)}" data-program-source="{html.escape(entry["source"], quote=True)}" data-program-difficulty="{difficulty}" data-program-tags="{html.escape(tag_value, quote=True)}">\n',
-                f'    <span class="problem-card__eyebrow">{html.escape(entry["source"])} · {html.escape(language_markup)}</span>\n',
-                f'    <strong>{html.escape(entry["title"])}</strong>\n',
-                f'    <span class="program-card__difficulty difficulty--{difficulty}">{difficulty_label}</span>\n',
-                f'    <span class="program-card__tags">{tag_markup}</span>\n',
-                '  </a>\n',
+                f'    <tr class="source-card program-row" data-source-search="{html.escape(entry["search"], quote=True)}" data-program-title="{html.escape(entry["title"].lower(), quote=True)}" data-program-source="{html.escape(entry["source"], quote=True)}" data-program-language="{html.escape(language_markup, quote=True)}" data-program-difficulty="{difficulty}" data-program-tags="{html.escape(tag_value, quote=True)}">\n',
+                f'      <td class="program-table__title"><a href="{entry["href"]}"><strong>{html.escape(entry["title"])}</strong></a></td>\n',
+                f'      <td>{html.escape(entry["source"])}</td>\n',
+                f'      <td class="program-table__language">{html.escape(language_markup)}</td>\n',
+                f'      <td><span class="program-card__difficulty difficulty--{difficulty}">{difficulty_label}</span></td>\n',
+                f'      <td><span class="program-card__tags">{tag_markup}</span></td>\n',
+                '    </tr>\n',
             ]
         )
-    page.extend(['</div>\n\n', '<p class="source-empty" hidden>找不到符合條件的程式。試著減少關鍵字或清除一個標籤。</p>\n', '</div>\n'])
+    page.extend(['  </tbody>\n', '</table>\n', '</div>\n\n', '<p class="source-empty" hidden>找不到符合條件的程式。試著減少關鍵字或清除一個標籤。</p>\n', '</div>\n'])
     destination = DESTINATION / "programs"
     destination.mkdir(parents=True, exist_ok=True)
     (destination / "index.md").write_text("".join(page), encoding="utf-8")
