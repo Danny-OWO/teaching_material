@@ -555,6 +555,28 @@ Repeat once per input.
                 "for value in range(3):\n    print(value)\n", encoding="utf-8"
             )
 
+            for slug, title, order in (
+                ("intro", "Intro Problem", 1),
+                ("sorting", "Sorting Problem", 101),
+            ):
+                cses_directory = materials / "CSES_problem_set" / slug
+                cses_directory.mkdir(parents=True)
+                (cses_directory / "problem.md").write_text(
+                    f"""---
+title: {title}
+difficulty: easy
+order: {order}
+topics: [arithmetic]
+patterns: []
+techniques: []
+---
+""",
+                    encoding="utf-8",
+                )
+                (cses_directory / "solution.cpp").write_text(
+                    "int main() {}\n", encoding="utf-8"
+                )
+
             with ExitStack() as patches:
                 patches.enter_context(patch.object(prepare_mkdocs, "ROOT", root))
                 patches.enter_context(patch.object(prepare_mkdocs, "DESTINATION", destination))
@@ -593,6 +615,16 @@ Repeat once per input.
             self.assertIn('  - "首頁": "index.md"', config)
             self.assertIn('  - "程式標籤搜尋": "programs/index.md"', config)
             self.assertIn('"Fixture Challenge": "Problems/sample/index.md"', config)
+            self.assertIn('      - "Introductory Problems":', config)
+            self.assertIn(
+                '          - "Intro Problem": "CSES_problem_set/intro/index.md"',
+                config,
+            )
+            self.assertIn('      - "Sorting and Searching":', config)
+            self.assertIn(
+                '          - "Sorting Problem": "CSES_problem_set/sorting/index.md"',
+                config,
+            )
             self.assertNotIn("intro.md</span>", lesson_index)
             self.assertTrue((destination / "assets" / "fixture.txt").is_file())
 

@@ -30,6 +30,13 @@ DISPLAY_NAMES = {
     "ZeroJudge": "ZeroJudge 題解",
 }
 
+# CSES uses spaced order bands so the sidebar can expose chapters without
+# coupling navigation to the physical directory layout or changing page URLs.
+CSES_CHAPTERS = (
+    ("Introductory Problems", 1, 100),
+    ("Sorting and Searching", 100, 200),
+)
+
 DIFFICULTY_LABELS = {
     "easy": "簡單",
     "medium": "中等",
@@ -402,6 +409,18 @@ def source_directory_sort_key(directory: Path, source_root: Path) -> tuple:
     note = problem_metadata(directory)
     order = int(note[0].get("order", 999)) if note else 999
     return (order, directory.relative_to(source_root).as_posix().lower())
+
+
+def cses_chapter(directory: Path) -> str:
+    """Map a curated CSES problem into its sidebar chapter."""
+    note = problem_metadata(directory)
+    if not note or "order" not in note[0]:
+        raise ValueError(f"{directory} needs an order to select a CSES chapter")
+    order = int(note[0]["order"])
+    for title, start, stop in CSES_CHAPTERS:
+        if start <= order < stop:
+            return title
+    raise ValueError(f"{directory} has CSES order {order} outside known chapters")
 
 
 def write_source_index(directory_name: str, display_name: str | None = None) -> None:
@@ -1028,6 +1047,24 @@ def write_generated_config() -> None:
                     relative = directory.relative_to(material_directory).as_posix()
                     nav.append(
                         f"          - {json.dumps(relative, ensure_ascii=False)}: "
+                        f"{json.dumps(f'{directory_name}/{relative}/index.md', ensure_ascii=False)}"
+                    )
+        elif directory_name == "CSES_problem_set":
+            for chapter_title, _, _ in CSES_CHAPTERS:
+                chapter_directories = [
+                    directory
+                    for directory in source_directories
+                    if cses_chapter(directory) == chapter_title
+                ]
+                if not chapter_directories:
+                    continue
+                nav.append(f"      - {json.dumps(chapter_title, ensure_ascii=False)}:")
+                for directory in chapter_directories:
+                    relative = directory.relative_to(material_directory).as_posix()
+                    note = problem_metadata(directory)
+                    item_title = str(note[0]["title"])
+                    nav.append(
+                        f"          - {json.dumps(item_title, ensure_ascii=False)}: "
                         f"{json.dumps(f'{directory_name}/{relative}/index.md', ensure_ascii=False)}"
                     )
         else:
