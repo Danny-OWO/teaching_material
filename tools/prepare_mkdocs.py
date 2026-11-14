@@ -30,11 +30,10 @@ DISPLAY_NAMES = {
     "ZeroJudge": "ZeroJudge 題解",
 }
 
-# CSES uses spaced order bands so the sidebar can expose chapters without
-# coupling navigation to the physical directory layout or changing page URLs.
+# The physical CSES directory hierarchy is the source of truth for chapters.
 CSES_CHAPTERS = (
-    ("Introductory Problems", 1, 100),
-    ("Sorting and Searching", 100, 200),
+    ("Introductory_Problems", "Introductory Problems"),
+    ("Sorting_and_Searching", "Sorting and Searching"),
 )
 
 DIFFICULTY_LABELS = {
@@ -411,16 +410,16 @@ def source_directory_sort_key(directory: Path, source_root: Path) -> tuple:
     return (order, directory.relative_to(source_root).as_posix().lower())
 
 
-def cses_chapter(directory: Path) -> str:
-    """Map a curated CSES problem into its sidebar chapter."""
-    note = problem_metadata(directory)
-    if not note or "order" not in note[0]:
-        raise ValueError(f"{directory} needs an order to select a CSES chapter")
-    order = int(note[0]["order"])
-    for title, start, stop in CSES_CHAPTERS:
-        if start <= order < stop:
+def cses_chapter(directory: Path, source_root: Path) -> str:
+    """Read a CSES problem's chapter from its physical parent directory."""
+    relative = directory.relative_to(source_root)
+    if len(relative.parts) < 2:
+        raise ValueError(f"{directory} must live inside a CSES chapter directory")
+    chapter_directory = relative.parts[0]
+    for directory_name, title in CSES_CHAPTERS:
+        if chapter_directory == directory_name:
             return title
-    raise ValueError(f"{directory} has CSES order {order} outside known chapters")
+    raise ValueError(f"{directory} uses unknown CSES chapter {chapter_directory!r}")
 
 
 def write_source_index(directory_name: str, display_name: str | None = None) -> None:
@@ -1050,11 +1049,11 @@ def write_generated_config() -> None:
                         f"{json.dumps(f'{directory_name}/{relative}/index.md', ensure_ascii=False)}"
                     )
         elif directory_name == "CSES_problem_set":
-            for chapter_title, _, _ in CSES_CHAPTERS:
+            for _, chapter_title in CSES_CHAPTERS:
                 chapter_directories = [
                     directory
                     for directory in source_directories
-                    if cses_chapter(directory) == chapter_title
+                    if cses_chapter(directory, material_directory) == chapter_title
                 ]
                 if not chapter_directories:
                     continue
