@@ -1,0 +1,54 @@
+apple-sharing:
+  title: apple-sharing
+  difficulty: easy
+  topics: [arithmetic]
+  patterns: [quotient-remainder]
+  techniques: [integer-division, modular-arithmetic]
+area-of-right-angled-triangle:
+  title: area-of-right-angled-triangle
+  difficulty: easy
+  topics: [arithmetic, geometry, floating-point]
+  patterns: [direct-formula]
+  techniques: []
+hello-harry!:
+  title: hello-harry!
+  difficulty: easy
+  topics: [string, output-formatting]
+  patterns: []
+  techniques: []
+hi-john:
+  title: hi-john
+  difficulty: easy
+  topics: [string, output-formatting]
+  patterns: []
+  techniques: []
+previous-and-next:
+  title: previous-and-next
+  difficulty: easy
+  topics: [arithmetic, output-formatting]
+  patterns: [direct-formula]
+  techniques: []
+school-desks:
+  title: school-desks
+  difficulty: easy
+  topics: [arithmetic]
+  patterns: [ceiling-division]
+  techniques: [integer-division]
+square:
+  title: square
+  difficulty: easy
+  topics: [arithmetic]
+  patterns: [direct-formula]
+  techniques: []
+sum-of-three-numbers:
+  title: sum-of-three-numbers
+  difficulty: easy
+  topics: [arithmetic]
+  patterns: [direct-formula]
+  techniques: []
+two-timestamp:
+  title: two-timestamp
+  difficulty: easy
+  topics: [arithmetic]
+  patterns: [unit-conversion]
+  techniques: [time-conversion]

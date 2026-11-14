@@ -803,7 +803,6 @@ body::before {
 }
 
 .md-typeset .problem-card__badges,
-.md-typeset .problem-meta__tags,
 .md-typeset .problem-meta__complexity {
   display: flex;
   flex-wrap: wrap;
@@ -833,7 +832,8 @@ body::before {
 .md-typeset .difficulty--medium { color: #ffd077; background: rgba(225, 161, 53, 0.1); }
 .md-typeset .difficulty--hard { color: #ff8c92; background: rgba(220, 70, 78, 0.1); }
 .md-typeset .problem-tag { color: #81d8e8; background: rgba(103, 212, 232, 0.08); }
-.md-typeset .problem-tag--pattern { color: #c3a9ff; background: rgba(168, 125, 238, 0.08); }
+.md-typeset .problem-tag--patterns { color: #c3a9ff; background: rgba(168, 125, 238, 0.08); }
+.md-typeset .problem-tag--techniques { color: #f2ca78; background: rgba(225, 161, 53, 0.08); }
 
 /* Per-file reading guide and the cross-source tag catalogue. */
 .md-typeset .code-explanation {
@@ -856,11 +856,47 @@ body::before {
 
 .md-typeset .code-explanation__heading strong { color: #edf7fa; }
 .md-typeset .code-explanation__heading span { color: #97aab4; font-size: 0.64rem; }
-.md-typeset .code-explanation__tags,
+.md-typeset .code-explanation__metadata,
+.md-typeset .code-explanation__metadata-row,
+.md-typeset .code-explanation__metadata-row > span,
+.md-typeset .code-explanation__signals,
+.md-typeset .code-explanation__signals > span,
 .md-typeset .program-card__tags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
+}
+
+.md-typeset .code-explanation__metadata {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.md-typeset .code-explanation__metadata-row,
+.md-typeset .code-explanation__signals {
+  align-items: baseline;
+  gap: 0.45rem 0.7rem;
+}
+
+.md-typeset .code-explanation__metadata-row > b,
+.md-typeset .code-explanation__signals > b {
+  min-width: 4.2rem;
+  color: #96aab4;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.md-typeset .code-explanation__signals {
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(52, 71, 90, 0.7);
+}
+
+.md-typeset .code-tag.code-tag--signal {
+  color: #91a2ab;
+  background: rgba(145, 162, 171, 0.06);
+  border-color: rgba(145, 162, 171, 0.3);
+  border-style: dashed;
 }
 
 .md-typeset .code-explanation ul { margin: 0; }
@@ -1176,6 +1212,31 @@ body::before {
   color: #c9d7de;
   font-family: var(--md-code-font);
   font-size: 0.66rem;
+}
+
+.md-typeset .problem-meta__tags {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.md-typeset .problem-meta__tag-row {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.45rem;
+}
+
+.md-typeset .problem-meta__tag-row > b {
+  color: #95a9b3;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.md-typeset .problem-meta__tag-row > span {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.38rem;
 }
 
 .md-typeset .problem-meta__complexity span {

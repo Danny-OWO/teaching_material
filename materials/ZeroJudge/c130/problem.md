@@ -6,7 +6,7 @@ difficulty: medium
 order: 13
 topics: [dfs, backtracking, subset-sum]
 patterns: [choose-or-skip, enumerate-solutions]
-techniques: [backtracking, deduplication]
+techniques: [deduplication]
 prerequisites: [recursion]
 pitfalls: [duplicate-solution, missing-backtrack, output-order]
 complexity: {time: "O(2ⁿ · n)", space: "O(2ⁿ · n)"}

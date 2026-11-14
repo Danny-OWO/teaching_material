@@ -5,7 +5,7 @@ problemId: e924
 difficulty: easy
 order: 5
 topics: [string, stack]
-patterns: [typed-delimiter-matching]
+patterns: [delimiter-matching]
 techniques: [stack-simulation, encoding]
 prerequisites: [stack]
 pitfalls: [wrong-type, empty-stack, leftover-opening]

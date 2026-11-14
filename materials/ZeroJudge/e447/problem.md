@@ -4,9 +4,9 @@ source: ZeroJudge
 problemId: e447
 difficulty: easy
 order: 2
-topics: [queue, data-structure]
-patterns: [first-in-first-out]
-techniques: [enqueue-front-dequeue]
+topics: [queue]
+patterns: []
+techniques: []
 prerequisites: [array]
 pitfalls: [empty-queue, wrong-end]
 complexity: {time: "O(q)", space: "O(q)"}

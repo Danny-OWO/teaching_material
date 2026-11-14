@@ -40,9 +40,49 @@ DIFFICULTY_ORDER = {"easy": 1, "medium": 2, "hard": 3}
 
 LANGUAGE_NAMES = {".cpp": "C++", ".py": "Python"}
 
-# The catalogue and the per-file explanation use the same vocabulary.  Keeping
-# this rule based (instead of storing a second hand-written database) means a
-# newly added solution is searchable on the very next deployment.
+TAG_FIELDS = ("topics", "patterns", "techniques")
+TAG_LIMITS = {"topics": (1, 3), "patterns": (0, 2), "techniques": (0, 2)}
+TAG_TAXONOMY_PATH = Path(__file__).with_name("tag_taxonomy.yml")
+
+
+def load_tag_taxonomy(path: Path = TAG_TAXONOMY_PATH) -> tuple[dict[str, str], dict[str, list[str]], dict[str, str]]:
+    """Load canonical tags, search aliases, and reverse alias suggestions."""
+    taxonomy = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    if set(taxonomy) != set(TAG_FIELDS):
+        raise ValueError(f"{path} must define exactly: {', '.join(TAG_FIELDS)}")
+    tag_fields: dict[str, str] = {}
+    tag_aliases: dict[str, list[str]] = {}
+    alias_targets: dict[str, str] = {}
+    for field in TAG_FIELDS:
+        entries = taxonomy[field]
+        if not isinstance(entries, dict):
+            raise ValueError(f"{field} in {path} must be a mapping")
+        for tag, aliases in entries.items():
+            if tag in tag_fields:
+                raise ValueError(f"Duplicate canonical tag in {path}: {tag}")
+            if not isinstance(tag, str) or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", tag):
+                raise ValueError(f"Invalid canonical tag in {path}: {tag!r}")
+            if not isinstance(aliases, list) or not all(isinstance(alias, str) for alias in aliases):
+                raise ValueError(f"Aliases for {tag} in {path} must be a list of strings")
+            tag_fields[tag] = field
+            generated_aliases = [tag.replace("-", " "), tag.replace("-", "_")]
+            tag_aliases[tag] = list(dict.fromkeys([*generated_aliases, *aliases]))
+            for alias in tag_aliases[tag]:
+                normalized_alias = alias.casefold()
+                existing = alias_targets.get(normalized_alias)
+                if existing and existing != tag:
+                    raise ValueError(f"Alias {alias!r} maps to both {existing} and {tag}")
+                alias_targets[normalized_alias] = tag
+    for alias, target in alias_targets.items():
+        if alias in tag_fields and alias != target:
+            raise ValueError(f"Alias {alias!r} for {target} conflicts with a canonical tag")
+    return tag_fields, tag_aliases, alias_targets
+
+
+TAG_FIELD_BY_SLUG, TAG_ALIASES, TAG_ALIAS_TARGETS = load_tag_taxonomy()
+
+# These lexical signals explain how to read a source file. Catalogue topics are
+# intentionally separate and must come from validated, curated metadata.
 CODE_SIGNALS = [
     ("input-output", "輸入輸出", r"\b(?:cin|cout|input|print)\b", "從標準輸入取得資料，並把答案寫到標準輸出。"),
     ("loop", "迴圈", r"\b(?:for|while)\s*\(?", "使用迴圈重複處理資料；閱讀時要特別確認邊界與終止條件。"),
@@ -179,18 +219,43 @@ def read_frontmatter(path: Path) -> tuple[dict, str]:
 
 def normalize_problem_metadata(metadata: dict, source: Path) -> dict:
     """Validate and normalize metadata shared by problem notes and manifests."""
-    required = {"title", "difficulty", "topics", "patterns"}
+    required = {"title", "difficulty", *TAG_FIELDS}
     missing = sorted(required - metadata.keys())
     if missing:
         raise ValueError(f"{source} is missing required metadata: {', '.join(missing)}")
     difficulty = str(metadata["difficulty"]).lower()
-    if difficulty not in DIFFICULTY_LABELS:
+    if difficulty not in {*DIFFICULTY_LABELS, "unrated"}:
         raise ValueError(f"{source} has invalid difficulty: {difficulty}")
     normalized = dict(metadata)
     normalized["difficulty"] = difficulty
-    for key in ("topics", "patterns", "techniques", "prerequisites", "pitfalls"):
+    for key in (*TAG_FIELDS, "prerequisites", "pitfalls"):
         value = normalized.get(key, [])
         normalized[key] = value if isinstance(value, list) else [value]
+    for field in TAG_FIELDS:
+        values = normalized[field]
+        if not all(isinstance(value, str) and value for value in values):
+            raise ValueError(f"{field} in {source} must contain non-empty strings")
+        if len(values) != len(set(values)):
+            raise ValueError(f"{field} in {source} contains duplicate tags")
+        minimum, maximum = TAG_LIMITS[field]
+        if not minimum <= len(values) <= maximum:
+            raise ValueError(
+                f"{field} in {source} must contain between {minimum} and {maximum} tags"
+            )
+        for tag in values:
+            actual_field = TAG_FIELD_BY_SLUG.get(tag)
+            if actual_field == field:
+                continue
+            alias_target = TAG_ALIAS_TARGETS.get(tag.casefold())
+            if alias_target:
+                raise ValueError(
+                    f"{tag!r} in {source} is an alias; use canonical tag {alias_target!r}"
+                )
+            if actual_field:
+                raise ValueError(
+                    f"{tag!r} in {source} belongs in {actual_field}, not {field}"
+                )
+            raise ValueError(f"Unknown {field} tag in {source}: {tag!r}")
     return normalized
 
 
@@ -245,20 +310,30 @@ def badges(values: list[str], css_class: str = "problem-tag") -> str:
     )
 
 
+def searchable_tag_terms(values: list[str]) -> list[str]:
+    """Expand canonical metadata tags with non-display search aliases."""
+    return list(
+        dict.fromkeys(
+            term
+            for tag in values
+            for term in (tag, *TAG_ALIASES.get(tag, []))
+        )
+    )
+
+
 def source_anchor(path: Path) -> str:
     """Return a stable HTML anchor for a source file."""
     return "source-" + re.sub(r"[^a-z0-9]+", "-", path.name.lower()).strip("-")
 
 
-def inferred_code_notes(path: Path, metadata: dict | None = None) -> tuple[list[str], list[str]]:
-    """Infer conservative teaching notes from syntax that is actually present."""
+def inferred_code_notes(path: Path) -> tuple[list[str], list[str]]:
+    """Infer reading signals from syntax without creating catalogue metadata."""
     text = path.read_text(encoding="utf-8", errors="replace")
-    metadata = metadata or {}
-    tags = [LANGUAGE_NAMES[path.suffix.lower()]]
+    signals = [LANGUAGE_NAMES[path.suffix.lower()]]
     notes: list[str] = []
     for slug, label, pattern, explanation in CODE_SIGNALS:
         if re.search(pattern, text, flags=re.IGNORECASE):
-            tags.append(slug)
+            signals.append(slug)
             notes.append(explanation)
 
     # Detect direct self-recursion without mistaking `return helper(...)` for a
@@ -269,29 +344,38 @@ def inferred_code_notes(path: Path, metadata: dict | None = None) -> tuple[list[
         else re.findall(r"(?m)^\s*(?:[\w:<>,*&]+\s+)+([A-Za-z_]\w*)\s*\([^;]*\)\s*\{", text)
     )
     if any(len(re.findall(rf"\b{re.escape(name)}\s*\(", text)) > 1 for name in function_names):
-        if "recursion" not in tags:
-            tags.append("recursion")
+        if "recursion" not in signals:
+            signals.append("recursion")
             notes.append("包含遞迴呼叫；請先找 base case，再追蹤每次呼叫如何縮小問題。")
-
-    # Curated problem metadata is more precise than lexical inference, so it is
-    # included in both the explanation and the global search catalogue.
-    for key in ("topics", "patterns", "techniques"):
-        tags.extend(str(value) for value in metadata.get(key, []))
 
     if path.suffix.lower() == ".cpp" and "#include <bits/stdc++.h>" in text:
         notes.append("`bits/stdc++.h` 在競賽環境很方便，但不是標準 C++ 標頭；正式專案應改引入實際使用的標頭。")
     if not notes:
         notes.append("程式採直線式流程完成計算；依序追蹤變數從輸入、轉換到輸出即可掌握它。")
 
-    # Preserve order while removing duplicate labels introduced by metadata.
-    unique_tags = list(dict.fromkeys(tag for tag in tags if tag))
-    return unique_tags, list(dict.fromkeys(notes))
+    # Preserve discovery order while removing signals matched by multiple rules.
+    unique_signals = list(dict.fromkeys(signal for signal in signals if signal))
+    return unique_signals, list(dict.fromkeys(notes))
 
 
 def source_explanation(path: Path, group_title: str, metadata: dict | None = None) -> str:
-    tags, notes = inferred_code_notes(path, metadata)
+    signals, notes = inferred_code_notes(path)
+    metadata = metadata or {}
     language = LANGUAGE_NAMES[path.suffix.lower()]
-    tag_markup = badges(tags, "code-tag")
+    signal_markup = badges(signals, "code-tag code-tag--signal")
+    metadata_rows = "".join(
+        (
+            f'  <div class="code-explanation__metadata-row"><b>{field.title()}</b>'
+            f'<span>{badges(metadata.get(field, []), f"code-tag code-tag--{field}")}</span></div>\n'
+        )
+        for field in TAG_FIELDS
+        if metadata.get(field)
+    )
+    metadata_markup = (
+        f'  <div class="code-explanation__metadata">\n{metadata_rows}  </div>\n'
+        if metadata_rows
+        else ""
+    )
     note_markup = "".join(f"    <li>{item}</li>\n" for item in notes)
     return (
         '<div class="code-explanation" markdown="1">\n'
@@ -299,7 +383,8 @@ def source_explanation(path: Path, group_title: str, metadata: dict | None = Non
         f'    <strong>怎麼讀這份 {language} 程式</strong>\n'
         f'    <span>{html.escape(group_title)} 的一份可執行解法</span>\n'
         '  </div>\n'
-        f'  <div class="code-explanation__tags">{tag_markup}</div>\n'
+        f'{metadata_markup}'
+        f'  <div class="code-explanation__signals"><b>Reading signals</b><span>{signal_markup}</span></div>\n'
         '  <ul>\n'
         f'{note_markup}'
         '  </ul>\n'
@@ -434,7 +519,7 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
         route_order = int(metadata.get("order", 999))
         details = ""
         if metadata:
-            difficulty_label = DIFFICULTY_LABELS[difficulty]
+            difficulty_label = DIFFICULTY_LABELS.get(difficulty, "未標示")
             summary = problem_summary(metadata)
             details = (
                 f'<span class="problem-card__eyebrow">{html.escape(summary)}</span>'
@@ -549,23 +634,31 @@ def write_source_index(directory_name: str, display_name: str | None = None) -> 
         back_link = "../index.md" if is_root else "../" * len(relative_directory.parts) + "index.md"
         page = [f"# {title}\n\n", f"[← 回到程式索引]({back_link})\n\n"]
         if metadata:
-            page.extend(['<a id="problem"></a>\n\n', "## 題目與解析\n\n"])
+            page.append('<a id="problem"></a>\n\n')
+            if lesson_body.strip():
+                page.append("## 題目與解析\n\n")
             difficulty = metadata["difficulty"]
             complexity = metadata.get("complexity", {})
             complexity_items = "".join(
                 f'<span><b>{html.escape(str(key))}</b> {html.escape(str(value))}</span>'
                 for key, value in complexity.items()
             ) if isinstance(complexity, dict) else ""
+            tag_rows = "".join(
+                f'  <div class="problem-meta__tag-row"><b>{field.title()}</b><span>{badges(metadata[field], f"problem-tag problem-tag--{field}")}</span></div>\n'
+                for field in TAG_FIELDS
+                if metadata[field]
+            )
             page.extend(
                 [
                     '<div class="problem-meta">\n',
-                    f'  <div class="problem-meta__top"><span>{html.escape(problem_summary(metadata))}</span><span class="difficulty difficulty--{difficulty}">{DIFFICULTY_LABELS[difficulty]}</span></div>\n',
-                    f'  <div class="problem-meta__tags">{badges(metadata["topics"])}{badges(metadata["patterns"], "problem-tag problem-tag--pattern")}</div>\n',
+                    f'  <div class="problem-meta__top"><span>{html.escape(problem_summary(metadata))}</span><span class="difficulty difficulty--{difficulty}">{DIFFICULTY_LABELS.get(difficulty, "未標示")}</span></div>\n',
+                    f'  <div class="problem-meta__tags">\n{tag_rows}  </div>\n',
                     (f'  <div class="problem-meta__complexity">{complexity_items}</div>\n' if complexity_items else ""),
                     '</div>\n\n',
                 ]
             )
-            page.append(lesson_body.rstrip() + "\n\n")
+            if lesson_body.strip():
+                page.append(lesson_body.rstrip() + "\n\n")
         image_files = sorted(
             (
                 path
@@ -689,7 +782,7 @@ def write_file_index(directory_name: str) -> None:
 
 
 def write_program_catalog() -> None:
-    """Build one cross-source catalogue where tags are first-class filters."""
+    """Build a curated cross-source catalogue where topics are first-class filters."""
     grouped_entries: dict[tuple[str, str, str], dict] = {}
     for material_directory in material_directories():
         source_files = sorted(
@@ -708,33 +801,22 @@ def write_program_catalog() -> None:
                 if directory_note
                 else ({}, per_file_problem_metadata(directory))
             )
-        stems_by_parent: dict[Path, set[str]] = {}
-        for path in source_files:
-            stems_by_parent.setdefault(path.parent, set()).add(path.stem.lower())
         for source_file in source_files:
             relative_parent = source_file.parent.relative_to(material_directory)
             directory_metadata, per_file_metadata = metadata_by_directory[source_file.parent]
             file_metadata = per_file_metadata.get(source_file.stem, {})
             metadata = directory_metadata or file_metadata
-            fallback_title = (
-                relative_parent.name
-                if relative_parent != Path(".") and len(stems_by_parent[source_file.parent]) == 1
-                else source_file.stem
-            )
-            title = str(metadata.get("title", fallback_title))
+            if not metadata:
+                relative_source = source_file.relative_to(MATERIALS).as_posix()
+                raise ValueError(
+                    f"{relative_source} is missing curated problem metadata; "
+                    "add problem.md or an _problems.yml entry"
+                )
+            title = str(metadata["title"])
             language = LANGUAGE_NAMES[source_file.suffix.lower()]
-            if file_metadata:
-                tags = [
-                    language,
-                    *(
-                        str(value)
-                        for key in ("topics", "patterns", "techniques")
-                        for value in file_metadata[key]
-                    ),
-                ]
-            else:
-                tags, _ = inferred_code_notes(source_file, metadata)
-            algorithm_tags = [tag for tag in tags if tag not in LANGUAGE_NAMES.values()]
+            topics = [str(value) for value in metadata["topics"]]
+            patterns = [str(value) for value in metadata["patterns"]]
+            techniques = [str(value) for value in metadata["techniques"]]
             page_directory = "_root" if relative_parent == Path(".") else relative_parent.as_posix()
             href = f'../{quote(material_directory.name)}/{quote(page_directory)}/#{source_anchor(source_file)}'
             # Curated problem metadata identifies all implementations as one
@@ -748,39 +830,47 @@ def write_program_catalog() -> None:
                     "source": display_name(material_directory.name),
                     "languages": [],
                     "filenames": [],
-                    "tags": [],
-                    "difficulty": str(metadata.get("difficulty", "unrated")),
+                    "topics": [],
+                    "patterns": [],
+                    "techniques": [],
+                    "difficulty": str(metadata["difficulty"]),
                     "href": href,
                 }
             entry = grouped_entries[key]
             entry["languages"].append(language)
             entry["filenames"].append(source_file.name)
-            entry["tags"].extend(algorithm_tags)
+            entry["topics"].extend(topics)
+            entry["patterns"].extend(patterns)
+            entry["techniques"].extend(techniques)
 
     entries = list(grouped_entries.values())
     for entry in entries:
         entry["languages"] = sorted(set(entry["languages"]))
-        entry["tags"] = list(dict.fromkeys(entry["tags"]))
+        for field in TAG_FIELDS:
+            entry[field] = list(dict.fromkeys(entry[field]))
+        semantic_tags = [
+            tag
+            for field in TAG_FIELDS
+            for tag in entry[field]
+        ]
         entry["search"] = " ".join(
-            [entry["title"], entry["source"], *entry["filenames"], *entry["languages"], *entry["tags"]]
+            [
+                entry["title"], entry["source"], *entry["filenames"], *entry["languages"],
+                *searchable_tag_terms(semantic_tags),
+            ]
         ).lower()
 
     entries.sort(key=lambda item: (item["source"].lower(), item["title"].lower()))
-    all_tags = {tag for entry in entries for tag in entry["tags"]}
+    all_tags = {tag for entry in entries for tag in entry["topics"]}
     popular_tags = sorted(
         all_tags,
         key=lambda tag: (
-            -sum(tag in entry["tags"] for entry in entries),
+            -sum(tag in entry["topics"] for entry in entries),
             tag.lower(),
         ),
     )
     sources = sorted({entry["source"] for entry in entries}, key=str.lower)
-    # input-output is nearly universal and adds noise rather than helping
-    # discovery. Keep the first row to genuinely useful algorithm tags.
-    featured_tags = [
-        tag for tag in popular_tags
-        if tag != "input-output"
-    ][:12]
+    featured_tags = popular_tags[:12]
     more_tags = [tag for tag in popular_tags if tag not in featured_tags]
 
     page = [
@@ -811,22 +901,22 @@ def write_program_catalog() -> None:
             '</div>\n\n',
             '<section class="program-tags" aria-labelledby="program-tags-heading">\n',
             '  <div class="program-tags__heading">\n',
-            '    <strong id="program-tags-heading">常用標籤</strong>\n',
-            '    <span data-program-selection>尚未選取標籤</span>\n',
+            '    <strong id="program-tags-heading">常用 Topics</strong>\n',
+            '    <span data-program-selection>尚未選取 Topic</span>\n',
             '  </div>\n',
             '<div class="tag-cloud tag-cloud--featured" data-program-tag-cloud aria-label="常用標籤篩選">\n',
         ]
     )
     for tag in featured_tags:
-        count = sum(tag in entry["tags"] for entry in entries)
+        count = sum(tag in entry["topics"] for entry in entries)
         tone = sum(map(ord, tag.lower())) % 6
         page.append(
             f'  <button class="tag-tone-{tone}" type="button" data-program-tag="{html.escape(tag, quote=True)}" aria-pressed="false">'
             f'{html.escape(tag)} <span>{count}</span></button>\n'
         )
-    page.extend(['</div>\n', '<details class="program-tag-drawer">\n', f'  <summary>瀏覽其他 {len(more_tags)} 個標籤</summary>\n', '  <div class="tag-cloud" aria-label="其他標籤篩選">\n'])
+    page.extend(['</div>\n', '<details class="program-tag-drawer">\n', f'  <summary>瀏覽其他 {len(more_tags)} 個 Topics</summary>\n', '  <div class="tag-cloud" aria-label="其他 Topic 篩選">\n'])
     for tag in more_tags:
-        count = sum(tag in entry["tags"] for entry in entries)
+        count = sum(tag in entry["topics"] for entry in entries)
         tone = sum(map(ord, tag.lower())) % 6
         page.append(
             f'    <button class="tag-tone-{tone}" type="button" data-program-tag="{html.escape(tag, quote=True)}" aria-pressed="false">'
@@ -849,15 +939,15 @@ def write_program_catalog() -> None:
             '      <th scope="col"><button type="button" data-program-sort="source">來源<span aria-hidden="true"></span></button></th>\n',
             '      <th scope="col"><button type="button" data-program-sort="language">語言<span aria-hidden="true"></span></button></th>\n',
             '      <th scope="col"><button type="button" data-program-sort="difficulty">難度<span aria-hidden="true"></span></button></th>\n',
-            '      <th scope="col">標籤</th>\n',
+            '      <th scope="col">Topics</th>\n',
             '    </tr>\n',
             '  </thead>\n',
             '  <tbody data-program-index>\n',
         ]
     )
     for entry in entries:
-        tag_value = "|".join(entry["tags"])
-        tag_markup = badges(entry["tags"][:4], "code-tag")
+        tag_value = "|".join(entry["topics"])
+        tag_markup = badges(entry["topics"], "code-tag code-tag--topics")
         language_markup = " / ".join(entry["languages"])
         difficulty = entry["difficulty"]
         difficulty_label = DIFFICULTY_LABELS.get(difficulty, "未標示")

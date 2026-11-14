@@ -6,7 +6,7 @@ difficulty: medium
 order: 14
 topics: [string, prefix-sum, binary-search]
 patterns: [weighted-prefix-selection]
-techniques: [frequency-table, lower-bound]
+techniques: [frequency-counting, lower-bound]
 prerequisites: [prefix-sum, binary-search]
 pitfalls: [prefix-sentinel, one-based-rank, off-by-one]
 complexity: {time: "O(|x| + |y| + q log |x|)", space: "O(|x|)"}

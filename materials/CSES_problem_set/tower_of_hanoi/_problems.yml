@@ -1,0 +1,6 @@
+toh:
+  title: tower_of_hanoi
+  difficulty: unrated
+  topics: [recursion]
+  patterns: [recursive-decomposition]
+  techniques: []

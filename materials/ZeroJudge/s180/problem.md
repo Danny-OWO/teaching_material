@@ -4,9 +4,9 @@ source: ZeroJudge
 problemId: s180
 difficulty: medium
 order: 20
-topics: [array, difference-array, coordinate-compression, binary-search]
+topics: [difference-array, coordinate-compression, binary-search]
 patterns: [range-addition, count-points-in-interval]
-techniques: [prefix-sum, bisect-left, bisect-right]
+techniques: [lower-bound, upper-bound]
 prerequisites: [array, sorting, binary-search]
 pitfalls: [quadratic-enumeration, large-date-range, inclusive-endpoint, duplicate-arrivals]
 complexity: {time: "O(n log n + m log n)", space: "O(n)"}

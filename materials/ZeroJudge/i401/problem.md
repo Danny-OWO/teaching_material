@@ -6,7 +6,7 @@ difficulty: hard
 order: 17
 topics: [geometry, binary-search, simulation]
 patterns: [spatial-index-by-axis, ray-tracing]
-techniques: [sorted-buckets, lower-bound, upper-bound]
+techniques: [lower-bound, upper-bound]
 prerequisites: [binary-search, coordinate]
 pitfalls: [direction-transition, strict-next, coordinate-offset]
 complexity: {time: "O(n log n + h log n)", space: "O(n)"}

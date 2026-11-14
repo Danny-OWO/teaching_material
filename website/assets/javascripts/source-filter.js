@@ -109,8 +109,8 @@ const initializeSourceFilter = () => {
     if (empty) empty.hidden = visible !== 0;
     if (programSelection) {
       programSelection.textContent = selectedProgramTags.size
-        ? `已選 ${selectedProgramTags.size} 個：${[...selectedProgramTags].join("、")}`
-        : "尚未選取標籤";
+        ? `已選 ${selectedProgramTags.size} 個 Topics：${[...selectedProgramTags].join("、")}`
+        : "尚未選取 Topic";
     }
   };
 

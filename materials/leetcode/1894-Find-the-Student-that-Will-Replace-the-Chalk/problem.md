@@ -4,8 +4,8 @@ source: LeetCode
 problemId: 1894
 difficulty: medium
 order: 2
-topics: [array, simulation, math]
-patterns: [cycle-reduction, repeated-process]
+topics: [array, simulation]
+patterns: [cycle-reduction]
 techniques: [modular-arithmetic, linear-scan]
 prerequisites: [array, modulo]
 pitfalls: [strictly-less, modulo-zero, integer-overflow]

@@ -6,7 +6,7 @@ difficulty: easy
 order: 8
 topics: [string, counting, simulation]
 patterns: [validation-and-frequency]
-techniques: [check-digit, frequency-array]
+techniques: [check-digit, frequency-counting]
 prerequisites: [string-indexing]
 pitfalls: [leading-zero, check-digit, tie-breaking]
 complexity: {time: "O(nL)", space: "O(1)"}

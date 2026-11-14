@@ -4,9 +4,9 @@ source: ZeroJudge
 problemId: b923
 difficulty: easy
 order: 1
-topics: [stack, data-structure]
-patterns: [last-in-first-out]
-techniques: [push-pop-top]
+topics: [stack]
+patterns: []
+techniques: []
 prerequisites: [array]
 pitfalls: [empty-stack, command-parsing]
 complexity: {time: "O(q)", space: "O(q)"}

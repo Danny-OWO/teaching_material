@@ -4,7 +4,7 @@ source: LeetCode
 problemId: 2389
 difficulty: easy
 order: 1
-topics: [array, sorting, prefix-sum, binary-search]
+topics: [sorting, prefix-sum, binary-search]
 patterns: [maximize-count-under-budget, monotonic-prefix]
 techniques: [greedy-smallest-first, upper-bound]
 prerequisites: [sorting, prefix-sum]

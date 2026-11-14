@@ -63,7 +63,7 @@ class ProblemMetadataTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary_directory:
             problem_directory = self.write_problem(
                 temporary_directory,
-                "title: Invalid\ndifficulty: expert\ntopics: loops\npatterns: simulation\n",
+                "title: Invalid\ndifficulty: expert\ntopics: arithmetic\npatterns: direct-formula\ntechniques: []\n",
             )
 
             with self.assertRaisesRegex(ValueError, "invalid difficulty: expert"):
@@ -75,11 +75,11 @@ class ProblemMetadataTests(unittest.TestCase):
                 temporary_directory,
                 """title: Normalized
 difficulty: MEDIUM
-topics: loops
+topics: arithmetic
 patterns:
-  - simulation
-  - counting
-techniques: prefix sum
+  - direct-formula
+  - quotient-remainder
+techniques: integer-division
 prerequisites:
   - arrays
 pitfalls: off-by-one
@@ -89,12 +89,42 @@ pitfalls: off-by-one
             metadata, body = prepare_mkdocs.problem_metadata(problem_directory)
 
             self.assertEqual(metadata["difficulty"], "medium")
-            self.assertEqual(metadata["topics"], ["loops"])
-            self.assertEqual(metadata["patterns"], ["simulation", "counting"])
-            self.assertEqual(metadata["techniques"], ["prefix sum"])
+            self.assertEqual(metadata["topics"], ["arithmetic"])
+            self.assertEqual(metadata["patterns"], ["direct-formula", "quotient-remainder"])
+            self.assertEqual(metadata["techniques"], ["integer-division"])
             self.assertEqual(metadata["prerequisites"], ["arrays"])
             self.assertEqual(metadata["pitfalls"], ["off-by-one"])
             self.assertEqual(body, "Explanation.\n")
+
+    def test_problem_metadata_accepts_explicit_unrated_difficulty(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            problem_directory = self.write_problem(
+                temporary_directory,
+                "title: Legacy\ndifficulty: unrated\ntopics: arithmetic\npatterns: []\ntechniques: []\n",
+            )
+
+            metadata, _ = prepare_mkdocs.problem_metadata(problem_directory)
+
+            self.assertEqual(metadata["difficulty"], "unrated")
+
+    def test_problem_metadata_enforces_controlled_taxonomy(self):
+        cases = (
+            ("topics: arrays", "is an alias; use canonical tag 'array'"),
+            ("topics: mystery-topic", "Unknown topics tag"),
+            ("topics: lower-bound", "belongs in techniques, not topics"),
+            ("topics: [array, array]", "contains duplicate tags"),
+            ("topics: [array, string, stack, queue]", "between 1 and 3 tags"),
+            ("topics: []", "between 1 and 3 tags"),
+        )
+        for topics, message in cases:
+            with self.subTest(topics=topics):
+                with tempfile.TemporaryDirectory() as temporary_directory:
+                    problem_directory = self.write_problem(
+                        temporary_directory,
+                        f"title: Invalid\ndifficulty: easy\n{topics}\npatterns: []\ntechniques: []\n",
+                    )
+                    with self.assertRaisesRegex(ValueError, message):
+                        prepare_mkdocs.problem_metadata(problem_directory)
 
 
 class PerFileProblemMetadataTests(unittest.TestCase):
@@ -113,10 +143,10 @@ class PerFileProblemMetadataTests(unittest.TestCase):
                 """sample:
   title: Shared Exercise
   difficulty: medium
-  topics: arrays
+  topics: array
   patterns:
-    - simulation
-  techniques: counting
+    - direct-formula
+  techniques: integer-division
 """,
                 sources=("sample.cpp", "sample.py"),
             )
@@ -125,8 +155,8 @@ class PerFileProblemMetadataTests(unittest.TestCase):
 
             self.assertEqual(list(metadata), ["sample"])
             self.assertEqual(metadata["sample"]["title"], "Shared Exercise")
-            self.assertEqual(metadata["sample"]["topics"], ["arrays"])
-            self.assertEqual(metadata["sample"]["techniques"], ["counting"])
+            self.assertEqual(metadata["sample"]["topics"], ["array"])
+            self.assertEqual(metadata["sample"]["techniques"], ["integer-division"])
 
     def test_manifest_normalizes_an_unquoted_integer_key_to_a_source_stem(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -136,7 +166,8 @@ class PerFileProblemMetadataTests(unittest.TestCase):
   title: Numeric Exercise
   difficulty: easy
   topics: arithmetic
-  patterns: simulation
+  patterns: direct-formula
+  techniques: []
 """,
                 sources=("101.py",),
             )
@@ -161,12 +192,14 @@ class PerFileProblemMetadataTests(unittest.TestCase):
   title: First
   difficulty: easy
   topics: arithmetic
-  patterns: simulation
+  patterns: direct-formula
+  techniques: []
 "101":
   title: Second
   difficulty: medium
   topics: arithmetic
-  patterns: counting
+  patterns: quotient-remainder
+  techniques: []
 """,
                 "duplicate source stem after key normalization: 101",
             ),
@@ -199,7 +232,7 @@ class PerFileProblemMetadataTests(unittest.TestCase):
                 "missing required metadata: patterns",
             ),
             (
-                "sample:\n  title: Invalid\n  difficulty: expert\n  topics: loops\n  patterns: simulation\n",
+                "sample:\n  title: Invalid\n  difficulty: expert\n  topics: arithmetic\n  patterns: direct-formula\n  techniques: []\n",
                 "invalid difficulty: expert",
             ),
         )
@@ -217,8 +250,9 @@ class PerFileProblemMetadataTests(unittest.TestCase):
                 """missing:
   title: Missing Source
   difficulty: easy
-  topics: loops
-  patterns: simulation
+  topics: arithmetic
+  patterns: direct-formula
+  techniques: []
 """,
             )
 
@@ -237,8 +271,9 @@ class PerFileProblemMetadataTests(unittest.TestCase):
                 """---
 title: Directory Title
 difficulty: easy
-topics: loops
-patterns: simulation
+topics: arithmetic
+patterns: direct-formula
+techniques: []
 ---
 Directory notes.
 """,
@@ -270,9 +305,9 @@ Directory notes.
                 """search:
   title: Curated Search
   difficulty: hard
-  topics: graphs
-  patterns: breadth-first-search
-  techniques: queue
+  topics: [array]
+  patterns: [first-true]
+  techniques: [lower-bound]
 """,
                 encoding="utf-8",
             )
@@ -285,7 +320,13 @@ Directory notes.
             catalog = (destination / "programs" / "index.md").read_text(encoding="utf-8")
             self.assertEqual(catalog.count("<strong>Curated Search</strong>"), 1)
             self.assertIn('data-program-difficulty="hard"', catalog)
-            self.assertIn('data-program-tags="graphs|breadth-first-search|queue"', catalog)
+            self.assertIn('data-program-tags="array"', catalog)
+            self.assertIn('first-true', catalog)
+            self.assertIn('lower bound', catalog)
+            self.assertIn('data-program-tag="array"', catalog)
+            self.assertNotIn('data-program-tag="first-true"', catalog)
+            self.assertNotIn('data-program-tag="lower-bound"', catalog)
+            self.assertNotIn("input-output", catalog)
             self.assertIn("C++ / Python", catalog)
             self.assertIn('<table class="program-table">', catalog)
             self.assertIn('data-program-sort="title"', catalog)
@@ -304,13 +345,15 @@ Directory notes.
                 """first:
   title: Shared Display Title
   difficulty: easy
-  topics: loops
-  patterns: simulation
+  topics: [arithmetic]
+  patterns: [direct-formula]
+  techniques: []
 second:
   title: Shared Display Title
   difficulty: hard
-  topics: arrays
-  patterns: counting
+  topics: [array]
+  patterns: [quotient-remainder]
+  techniques: []
 """,
                 encoding="utf-8",
             )
@@ -324,6 +367,41 @@ second:
             self.assertEqual(catalog.count("<strong>Shared Display Title</strong>"), 2)
             self.assertIn("#source-first-py", catalog)
             self.assertIn("#source-second-py", catalog)
+
+    def test_catalog_rejects_source_without_curated_metadata(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            materials = root / "materials"
+            destination = root / "destination"
+            directory = materials / "Loose" / "chapter"
+            directory.mkdir(parents=True)
+            (directory / "orphan.py").write_text("print('orphan')\n", encoding="utf-8")
+
+            with patch.object(prepare_mkdocs, "MATERIALS", materials), patch.object(
+                prepare_mkdocs, "DESTINATION", destination
+            ):
+                with self.assertRaisesRegex(ValueError, "missing curated problem metadata"):
+                    prepare_mkdocs.write_program_catalog()
+
+
+class RepositoryCatalogCoverageTests(unittest.TestCase):
+    def test_all_repository_programs_have_curated_topic_metadata(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            destination = Path(temporary_directory) / "destination"
+            with patch.object(prepare_mkdocs, "DESTINATION", destination):
+                prepare_mkdocs.write_program_catalog()
+
+            catalog = (destination / "programs" / "index.md").read_text(encoding="utf-8")
+            self.assertEqual(catalog.count('class="source-card program-row"'), 57)
+            for reading_signal in (
+                "input-output",
+                "loop",
+                "condition",
+                "array-list",
+                "stack-queue",
+            ):
+                self.assertNotIn(f'data-program-tag="{reading_signal}"', catalog)
+                self.assertNotIn(f'data-program-tags="{reading_signal}"', catalog)
 
 
 class SourcePageMetadataTests(unittest.TestCase):
@@ -357,12 +435,14 @@ class SourcePageMetadataTests(unittest.TestCase):
   title: First Exercise
   difficulty: easy
   topics: [arithmetic]
-  patterns: [simulation]
+  patterns: [direct-formula]
+  techniques: []
 102:
   title: Second Exercise
   difficulty: medium
-  topics: [strings]
-  patterns: [formatting]
+  topics: [string, output-formatting]
+  patterns: [fixed-width-formatting]
+  techniques: [alignment-formatting]
 """,
             )
 
@@ -371,13 +451,14 @@ class SourcePageMetadataTests(unittest.TestCase):
         self.assertIn("## `101.py` — First Exercise", first)
         self.assertIn("First Exercise 的一份可執行解法", first)
         self.assertIn(">arithmetic</span>", first)
-        self.assertIn(">simulation</span>", first)
-        self.assertNotIn(">strings</span>", first)
+        self.assertIn(">direct-formula</span>", first)
+        self.assertNotIn(">string</span>", first)
         self.assertIn("[開啟原始檔](101.py){ .source-download }", first)
         self.assertIn("## `102.py` — Second Exercise", second)
         self.assertIn("Second Exercise 的一份可執行解法", second)
-        self.assertIn(">strings</span>", second)
-        self.assertIn(">formatting</span>", second)
+        self.assertIn(">string</span>", second)
+        self.assertIn(">fixed-width-formatting</span>", second)
+        self.assertIn(">alignment-formatting</span>", second)
         self.assertNotIn(">arithmetic</span>", second)
         self.assertIn("[開啟原始檔](102.py){ .source-download }", second)
 
@@ -390,8 +471,9 @@ class SourcePageMetadataTests(unittest.TestCase):
                 note="""---
 title: Directory Exercise
 difficulty: easy
-topics: [directory-topic]
-patterns: [directory-pattern]
+topics: [array]
+patterns: [direct-formula]
+techniques: []
 ---
 Directory notes.
 """,
@@ -401,8 +483,8 @@ Directory notes.
         self.assertIn("Directory notes.", page)
         self.assertIn("## `101.py`\n\n", page)
         self.assertIn("Directory Exercise 的一份可執行解法", page)
-        self.assertIn(">directory-topic</span>", page)
-        self.assertIn(">directory-pattern</span>", page)
+        self.assertIn(">array</span>", page)
+        self.assertIn(">direct-formula</span>", page)
         self.assertIn('<a id="source-101-py"></a>', page)
         self.assertIn("[開啟原始檔](101.py){ .source-download }", page)
 
@@ -459,8 +541,9 @@ class MainSmokeTests(unittest.TestCase):
                 """---
 title: Fixture Challenge
 difficulty: easy
-topics: loops
-patterns: simulation
+topics: arithmetic
+patterns: direct-formula
+techniques: []
 ---
 ## Approach
 

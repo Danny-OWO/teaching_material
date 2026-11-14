@@ -4,9 +4,9 @@ source: ZeroJudge
 problemId: c002
 difficulty: easy
 order: 6
-topics: [recursion, math]
+topics: [recursion]
 patterns: [recursive-definition]
-techniques: [direct-simulation]
+techniques: []
 prerequisites: [function-call, recursion]
 pitfalls: [base-case, nested-recursion, output-format]
 complexity: {time: "depends on n", space: "recursive call stack"}

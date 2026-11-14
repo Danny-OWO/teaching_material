@@ -6,7 +6,7 @@ difficulty: easy
 order: 3
 topics: [array, difference-array]
 patterns: [adjacent-difference]
-techniques: [single-pass]
+techniques: [linear-scan]
 prerequisites: [array]
 pitfalls: [first-element, index-shift]
 complexity: {time: "O(n)", space: "O(n)"}

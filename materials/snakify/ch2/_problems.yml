@@ -1,0 +1,114 @@
+car_route:
+  title: car_route
+  difficulty: easy
+  topics: [arithmetic, floating-point]
+  patterns: [ceiling-division]
+  techniques: []
+century:
+  title: century
+  difficulty: easy
+  topics: [arithmetic, floating-point]
+  patterns: [ceiling-division]
+  techniques: []
+clock_face_1:
+  title: clock_face_1
+  difficulty: easy
+  topics: [arithmetic, geometry]
+  patterns: [unit-conversion]
+  techniques: [time-conversion]
+clock_face_2:
+  title: clock_face_2
+  difficulty: easy
+  topics: [arithmetic, geometry]
+  patterns: []
+  techniques: [modular-arithmetic, angle-normalization]
+cyclic_rotation:
+  title: cyclic_rotation
+  difficulty: easy
+  topics: [arithmetic]
+  patterns: [digit-manipulation]
+  techniques: [digit-extraction, digit-rearrangement]
+day_of_week:
+  title: day_of_week
+  difficulty: easy
+  topics: [arithmetic]
+  patterns: [cyclic-shift]
+  techniques: [modular-arithmetic]
+digital_clock:
+  title: digital_clock
+  difficulty: easy
+  topics: [arithmetic]
+  patterns: [unit-conversion]
+  techniques: [integer-division, modular-arithmetic]
+first_digit_after_decimal_point:
+  title: first_digit_after_decimal_point
+  difficulty: easy
+  topics: [floating-point]
+  patterns: [digit-manipulation]
+  techniques: [type-conversion, modular-arithmetic]
+fractional_part:
+  title: fractional_part
+  difficulty: easy
+  topics: [floating-point]
+  patterns: [direct-formula]
+  techniques: [type-conversion]
+last_digit_of_integer:
+  title: last_digit_of_integer
+  difficulty: easy
+  topics: [arithmetic]
+  patterns: [digit-manipulation]
+  techniques: [modular-arithmetic]
+last_two_digits:
+  title: last_two_digits
+  difficulty: easy
+  topics: [arithmetic]
+  patterns: [digit-manipulation]
+  techniques: [modular-arithmetic]
+merge_two_numbers:
+  title: merge_two_numbers
+  difficulty: easy
+  topics: [arithmetic]
+  patterns: [digit-manipulation]
+  techniques: [digit-extraction, digit-rearrangement]
+reverse_three_digits:
+  title: reverse_three_digits
+  difficulty: easy
+  topics: [arithmetic]
+  patterns: [digit-manipulation]
+  techniques: [digit-extraction, digit-rearrangement]
+snail:
+  title: snail
+  difficulty: easy
+  topics: [arithmetic, floating-point]
+  patterns: [ceiling-division]
+  techniques: []
+sum_of_digits:
+  title: sum_of_digits
+  difficulty: easy
+  topics: [arithmetic]
+  patterns: [digit-manipulation]
+  techniques: [digit-extraction]
+swap_digits:
+  title: swap_digits
+  difficulty: easy
+  topics: [arithmetic]
+  patterns: [digit-manipulation]
+  techniques: [digit-extraction, digit-rearrangement]
+tens_digit:
+  title: tens_digit
+  difficulty: easy
+  topics: [arithmetic]
+  patterns: [digit-manipulation]
+  techniques: [digit-extraction]
+total_cost:
+  title: total_cost
+  difficulty: easy
+  topics: [arithmetic]
+  patterns: [quotient-remainder]
+  techniques: [integer-division, modular-arithmetic]
+two_digits:
+  title: two_digits
+  difficulty: easy
+  topics: [arithmetic]
+  patterns: [digit-manipulation]
+  techniques: [digit-extraction]

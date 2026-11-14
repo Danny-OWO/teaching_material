@@ -5,7 +5,7 @@ problemId: b838
 difficulty: easy
 order: 4
 topics: [string, stack]
-patterns: [balanced-parentheses]
+patterns: [delimiter-matching]
 techniques: [stack-simulation]
 prerequisites: [stack]
 pitfalls: [early-closing, leftover-opening]

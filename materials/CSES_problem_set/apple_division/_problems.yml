@@ -1,0 +1,6 @@
+ad:
+  title: apple_division
+  difficulty: unrated
+  topics: [backtracking, subset-sum, recursion]
+  patterns: [partition-min-difference, choose-or-skip]
+  techniques: [exhaustive-search]

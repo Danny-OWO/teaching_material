@@ -6,7 +6,7 @@ difficulty: medium
 order: 19
 topics: [array, prefix-sum, binary-search]
 patterns: [first-true, ratio-threshold-query]
-techniques: [range-sum-query, integer-cross-multiplication, lower-bound]
+techniques: [integer-cross-multiplication, lower-bound]
 prerequisites: [prefix-sum, binary-search]
 pitfalls: [floating-point-comparison, off-by-one, linear-scan, integer-overflow]
 complexity: {time: "O(n + m log n)", space: "O(n)"}

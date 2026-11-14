@@ -4,7 +4,7 @@ source: ZeroJudge
 problemId: f174
 difficulty: hard
 order: 16
-topics: [prefix-sum, deque, dynamic-window]
+topics: [prefix-sum, deque]
 patterns: [maximum-subarray-with-length-limit]
 techniques: [monotonic-queue]
 prerequisites: [prefix-sum, deque]

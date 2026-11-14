@@ -43,11 +43,11 @@ plugins:
 
 extra_css:
   - https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&display=swap
-  - assets/stylesheets/extra.css?v=program-search-4
+  - assets/stylesheets/extra.css?v=program-search-5
 
 extra_javascript:
   - assets/javascripts/background-video.js
-  - assets/javascripts/source-filter.js?v=program-search-4
+  - assets/javascripts/source-filter.js?v=program-search-5
   - assets/javascripts/algorithm-visualizer.js?v=2
   - https://unpkg.com/mermaid@10/dist/mermaid.min.js
   - assets/javascripts/mermaid.js

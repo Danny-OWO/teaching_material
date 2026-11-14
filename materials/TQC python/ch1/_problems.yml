@@ -2,13 +2,12 @@
   title: 字串欄寬與左右對齊輸出
   difficulty: easy
   topics:
-    - 字串
-    - 格式化輸出
+    - string
+    - output-formatting
   patterns:
-    - 固定欄寬排版
+    - fixed-width-formatting
   techniques:
-    - str.format
-    - 對齊格式指定符
+    - alignment-formatting
   pitfalls:
     - 欄寬是最小寬度，不會截短較長字串
 
@@ -16,13 +15,12 @@
   title: 浮點數小數位數與左右對齊輸出
   difficulty: easy
   topics:
-    - 浮點數
-    - 格式化輸出
+    - floating-point
+    - output-formatting
   patterns:
-    - 固定欄寬排版
+    - fixed-width-formatting
   techniques:
-    - str.format
-    - 兩位小數格式
-    - 對齊格式指定符
+    - decimal-formatting
+    - alignment-formatting
   pitfalls:
     - 輸入必須能轉換為浮點數
