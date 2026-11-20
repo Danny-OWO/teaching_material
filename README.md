@@ -23,7 +23,7 @@
 <div class="home-links home-links--primary">
   <a href="APCS/">
     <strong>🎯 準備 APCS</strong>
-    <span>從課程首頁查看學習順序、核心教材與練習方向。</span>
+    <span>從課程首頁查看學習順序、核心教材與中級練習清單。</span>
   </a>
   <a href="APCS/learning%20route%20-%20C++/">
     <strong>⚙️ 學習 C++</strong>
@@ -40,7 +40,7 @@
 <div class="home-links">
   <a href="CSES_problem_set/">
     <strong>CSES Problem Set</strong>
-    <span>35 題、50 份 C++ 學習紀錄，保留多版本演進並標示完成狀態與核心方法。</span>
+    <span>依章節整理題目與 C++ 學習紀錄，保留多版本演進，搭配核心方法與程式閱讀提醒。</span>
   </a>
   <a href="programs/">
     <strong>程式標籤搜尋</strong>

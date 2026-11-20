@@ -8,7 +8,7 @@ topics: [string, counting, simulation]
 patterns: [validation-and-frequency]
 techniques: [check-digit, frequency-counting]
 prerequisites: [string-indexing]
-pitfalls: [leading-zero, check-digit, tie-breaking]
+pitfalls: [leading-zero, check-digit]
 complexity: {time: "O(nL)", space: "O(1)"}
 ---
 
@@ -28,8 +28,10 @@ complexity: {time: "O(nL)", space: "O(1)"}
 
 - 把前三碼當整數輸出，遺失前導零，例如 `007` 變成 `7`。
 - 搞反 0-based 索引的奇偶權重。
-- 平手時更新條件寫成 `>=`，導致選到較大的代號；由小到大掃描配合 `>` 才會保留最小者。
+- 題目保證答案唯一，且至少有一組合法條碼，不需要另外制定平手規則。
 - 驗證公式只檢查一種等價形式，漏掉和為 10 的邊界。
+
+目前 `r490.py` 的輸出只補一次零，產地 `007` 會印成 `07`。練習時請改用 `str(tag).zfill(3)` 或整數格式化 `f"{tag:03d}"`，不要直接把現有程式當成已驗證的標準答案。
 
 ## 複雜度
 

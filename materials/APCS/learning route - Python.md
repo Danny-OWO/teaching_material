@@ -66,6 +66,8 @@ flowchart LR
 
 ## 階段 2：中級——序列、文字與模擬
 
+搭配 [APCS 中級練習清單](intermediate_practice.md) 使用：先練串列掃描與字串操作，再進入座標、矩陣與多步驟模擬。
+
 ### 2.1 List
 
 - 建立、初始化與索引
