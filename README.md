@@ -23,7 +23,7 @@
 <div class="home-links home-links--primary">
   <a href="APCS/">
     <strong>🎯 準備 APCS</strong>
-    <span>從課程首頁查看學習順序、核心教材與中級練習清單。</span>
+    <span>從課程首頁查看學習順序、核心教材與各級練習題目。</span>
   </a>
   <a href="APCS/learning%20route%20-%20C++/">
     <strong>⚙️ 學習 C++</strong>
